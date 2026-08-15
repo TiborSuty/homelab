@@ -40,6 +40,15 @@ grafana:
       memory: 256Mi
     limits:
       memory: 1Gi
+  # Both sidecars share the pod network namespace and therefore need distinct
+  # health-server ports.
+  sidecar:
+    dashboards:
+      env:
+        HEALTH_PORT: "8081"
+    datasources:
+      env:
+        HEALTH_PORT: "8082"
   additionalDataSources:
     - name: Loki
       uid: loki
