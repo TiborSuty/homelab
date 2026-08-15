@@ -7,13 +7,19 @@ control-plane node.
 ## Layout
 
 - `base/controlplane.yaml`: sensitive shared configuration and cluster PKI.
-- `patches/common.yaml`: SSD selector, DNS, and NTP.
+- `patches/common.yaml`: SSD selector, Longhorn host mount, DNS, and NTP.
+- `image-factory/longhorn.yaml`: Talos Image Factory extensions required by
+  Longhorn.
 - `patches/controlplane-workloads.yaml`: enables workload scheduling.
 - `patches/cilium.yaml`: disables the built-in Flannel CNI and `kube-proxy`.
 - `patches/controlplane-N.yaml`: hostname, static address, interface, and VIP.
 - `rendered/controlplane-N.yaml`: sensitive, complete configuration to apply.
 
 The base and rendered files contain private keys and must stay private.
+
+The installer image is built from the checked-in Image Factory schematic and
+contains `iscsi-tools` and `util-linux-tools`. The schematic is content
+addressed; its ID is pinned in `patches/common.yaml`.
 
 ## Render and validate
 
@@ -37,6 +43,13 @@ Cilium is installed separately from `infrastructure/cilium` during bootstrap.
 The Talos machine configuration sets the built-in CNI to `none` and disables
 `kube-proxy`. It is therefore expected for nodes to remain `NotReady` after an
 etcd bootstrap until `bootstrap/install-cilium.sh` completes successfully.
+
+## Persistent storage
+
+Longhorn uses `/var/lib/longhorn` on each node. The path lives on the persistent
+Talos EPHEMERAL XFS partition and is shared with the operating system because
+the servers currently contain only one SSD each. A regular Talos upgrade
+preserves it; resetting or reinstalling a node removes that node's replicas.
 
 ## Reinstall controlplane-3 from maintenance mode
 
