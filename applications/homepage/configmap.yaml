@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage
+  labels:
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/component: dashboard
+data:
+  kubernetes.yaml: |-
+    mode: cluster
+    ingress: false
+
+  settings.yaml: |-
+    title: Tibor's Homelab
+    theme: dark
+    color: slate
+    headerStyle: boxed
+    target: _blank
+    statusStyle: dot
+    disableUpdateCheck: true
+    layout:
+      Cluster:
+        style: row
+        columns: 3
+      Observability:
+        style: row
+        columns: 4
+      Applications:
+        style: row
+        columns: 3
+
+  services.yaml: |-
+    - Cluster:
+        - Argo CD:
+            icon: argocd.png
+            href: https://localhost:8080
+            description: GitOps and application reconciliation
+            namespace: argocd
+            podSelector: ""
+        - Longhorn:
+            icon: longhorn.png
+            href: http://localhost:8081
+            description: Replicated persistent storage
+            namespace: longhorn-system
+            podSelector: ""
+        - Hubble:
+            icon: cilium.png
+            href: http://localhost:12000
+            description: Cilium network observability
+            namespace: kube-system
+            podSelector: app.kubernetes.io/part-of=cilium
+
+    - Observability:
+        - Grafana:
+            icon: grafana.png
+            href: http://localhost:3000
+            description: Metrics dashboards and log exploration
+            namespace: monitoring
+            app: grafana
+        - Prometheus:
+            icon: prometheus.png
+            href: http://localhost:9090
+            description: Metrics, targets, and PromQL
+            namespace: monitoring
+            app: prometheus
+        - Alertmanager:
+            icon: alertmanager.png
+            href: http://localhost:9093
+            description: Active alerts and notification routing
+            namespace: monitoring
+            app: alertmanager
+        - Loki:
+            icon: loki.png
+            href: http://localhost:3000/explore
+            description: Kubernetes logs through Grafana
+            namespace: monitoring
+            app: loki
+
+    - Applications:
+        - MinIO:
+            icon: minio.png
+            href: http://localhost:9001
+            description: S3-compatible object storage
+            namespace: minio
+            app: minio
+        - CloudNativePG:
+            icon: postgres.png
+            href: https://cloudnative-pg.io/documentation/current/
+            description: PostgreSQL operator
+            namespace: cnpg-system
+            app: cloudnative-pg
+        - Homepage:
+            icon: homepage.png
+            href: http://localhost:3001
+            description: Homelab service dashboard
+            namespace: homepage
+            app: homepage
+
+  widgets.yaml: |-
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: Cluster
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: long
+          timeStyle: short
+          hourCycle: h23
+    - search:
+        provider: duckduckgo
+        target: _blank
+
+  bookmarks.yaml: |-
+    - Documentation:
+        - Homelab repository:
+            - icon: github.png
+              href: https://github.com/TiborSuty/homelab
+        - Talos Linux:
+            - icon: talos.png
+              href: https://docs.siderolabs.com/talos/latest
+        - Kubernetes:
+            - icon: kubernetes.png
+              href: https://kubernetes.io/docs/
+        - Homepage:
+            - icon: homepage.png
+              href: https://gethomepage.dev/
+
+  docker.yaml: ""
+  custom.css: ""
+  custom.js: ""

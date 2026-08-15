@@ -6,6 +6,8 @@ resources:
   - cloudnative-pg.yaml
   - longhorn.yaml
   - minio.yaml
+  - metrics-server.yaml
   - monitoring.yaml
   - loki.yaml
   - alloy.yaml
+  - homepage.yaml

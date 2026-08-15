@@ -1,0 +1,15 @@
+replicas: 1
+
+metrics:
+  enabled: true
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+  limits:
+    memory: 512Mi
