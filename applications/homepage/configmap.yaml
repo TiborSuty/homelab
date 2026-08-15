@@ -135,5 +135,6 @@ data:
               href: https://gethomepage.dev/
 
   docker.yaml: ""
+  proxmox.yaml: ""
   custom.css: ""
   custom.js: ""
