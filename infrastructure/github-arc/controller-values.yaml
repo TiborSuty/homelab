@@ -1,0 +1,28 @@
+replicaCount: 1
+
+flags:
+  logLevel: info
+  logFormat: json
+  updateStrategy: eventual
+  healthProbeBindAddress: ":8081"
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
