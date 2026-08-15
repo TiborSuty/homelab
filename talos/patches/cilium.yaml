@@ -1,0 +1,8 @@
+cluster:
+    # Cilium is installed separately during cluster bootstrap.
+    network:
+        cni:
+            name: none
+    # Cilium's eBPF service load balancer replaces kube-proxy.
+    proxy:
+        disabled: true

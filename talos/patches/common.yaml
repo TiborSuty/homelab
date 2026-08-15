@@ -1,0 +1,19 @@
+machine:
+    install:
+        disk:
+            $patch: delete
+        diskSelector:
+            model: "Vi550 S3 SSD"
+---
+apiVersion: v1alpha1
+kind: ResolverConfig
+nameservers:
+    - address: 192.168.187.1
+    - address: 1.1.1.1
+---
+apiVersion: v1alpha1
+kind: TimeSyncConfig
+ntp:
+    servers:
+        - time.cloudflare.com
+        - pool.ntp.org

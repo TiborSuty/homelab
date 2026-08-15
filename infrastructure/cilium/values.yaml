@@ -1,0 +1,53 @@
+# Talos provides node PodCIDRs, cgroup v2, bpffs, and KubePrism.
+ipam:
+  mode: kubernetes
+
+# Keep pod networking encapsulated so the LAN router does not need PodCIDR routes.
+routingMode: tunnel
+tunnelProtocol: vxlan
+
+# Replace kube-proxy with Cilium's eBPF service load balancer.
+kubeProxyReplacement: true
+k8sServiceHost: localhost
+k8sServicePort: 7445
+
+# Talos mounts cgroup v2 and does not allow workloads to load kernel modules.
+securityContext:
+  capabilities:
+    ciliumAgent:
+      - CHOWN
+      - KILL
+      - NET_ADMIN
+      - NET_RAW
+      - IPC_LOCK
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    cleanCiliumState:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+
+cgroup:
+  autoMount:
+    enabled: false
+  hostRoot: /sys/fs/cgroup
+
+# Keep Talos host DNS forwarding compatible with Cilium routing.
+bpf:
+  hostLegacyRouting: true
+
+operator:
+  replicas: 2
+
+hubble:
+  relay:
+    enabled: true
+    tls:
+      server:
+        enabled: true
+  ui:
+    enabled: true

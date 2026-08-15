@@ -1,0 +1,21 @@
+apiVersion: v1alpha1
+kind: HostnameConfig
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: LinkConfig
+name: eno1
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: Layer2VIPConfig
+name: 192.168.187.200
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: ResolverConfig
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: TimeSyncConfig
+$patch: delete

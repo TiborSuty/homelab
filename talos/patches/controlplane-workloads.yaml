@@ -1,0 +1,3 @@
+cluster:
+    # All three control-plane nodes can also run ordinary workloads.
+    allowSchedulingOnControlPlanes: true

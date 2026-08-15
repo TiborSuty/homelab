@@ -1,0 +1,8 @@
+# Talos machine configurations contain cluster private keys.
+/controlplane.yaml
+/worker.yaml
+/worker-1.yaml
+/.local/
+/talos/base/
+/talos/rendered/
+/talos/legacy/

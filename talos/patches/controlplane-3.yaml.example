@@ -1,0 +1,18 @@
+# Copy this file to controlplane-3.yaml after discovering the live interface.
+apiVersion: v1alpha1
+kind: HostnameConfig
+hostname: controlplane-3
+---
+apiVersion: v1alpha1
+kind: LinkConfig
+name: REPLACE_WITH_INTERFACE
+up: true
+addresses:
+    - address: 192.168.187.203/24
+routes:
+    - gateway: 192.168.187.1
+---
+apiVersion: v1alpha1
+kind: Layer2VIPConfig
+name: 192.168.187.200
+link: REPLACE_WITH_INTERFACE
