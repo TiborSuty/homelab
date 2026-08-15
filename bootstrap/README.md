@@ -1,12 +1,42 @@
 # Bootstrap
 
-Cluster bootstrap definitions belong here. Cilium is installed first because
-the Kubernetes nodes need a working CNI before a future GitOps controller can
-run.
+Cilium is installed first because the Kubernetes nodes need a working CNI
+before Argo CD can run. Argo CD then becomes the GitOps entry point for the
+remaining infrastructure and applications.
 
 ```sh
 ./bootstrap/install-cilium.sh
+./bootstrap/install-argocd.sh
 ```
 
-A future GitOps controller will become the entry point for the remaining
-infrastructure and application definitions.
+Argo CD is pinned to `v3.5.1` in `argocd/kustomization.yaml`. The root
+`Application` follows the `main` branch of this repository and synchronizes the
+definitions in `apps/`. Automatic self-healing is enabled, while automatic
+pruning stays disabled until the managed resources have been verified.
+
+## Argo CD UI
+
+Keep the UI private and forward it to the local machine when needed:
+
+```sh
+KUBECONFIG="$PWD/.local/kubeconfig" \
+  kubectl -n argocd port-forward svc/argocd-server 8080:443
+```
+
+Open <https://localhost:8080>. The initial username is `admin`; obtain its
+one-time password without storing it in the repository:
+
+```sh
+KUBECONFIG="$PWD/.local/kubeconfig" \
+  kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath='{.data.password}' | base64 --decode
+echo
+```
+
+Change the password after the first login, then remove the initial password
+Secret:
+
+```sh
+KUBECONFIG="$PWD/.local/kubeconfig" \
+  kubectl -n argocd delete secret argocd-initial-admin-secret
+```

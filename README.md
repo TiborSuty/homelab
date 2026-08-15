@@ -30,3 +30,14 @@ the pinned Cilium Helm release with:
 ```sh
 ./bootstrap/install-cilium.sh
 ```
+
+## GitOps
+
+Argo CD watches this public repository and reconciles the cluster from the
+declarative definitions under `bootstrap/apps/`:
+
+```sh
+./bootstrap/install-argocd.sh
+```
+
+See `bootstrap/README.md` for the bootstrap order and local UI access.
