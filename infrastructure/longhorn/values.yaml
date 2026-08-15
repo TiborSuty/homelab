@@ -1,0 +1,25 @@
+service:
+  ui:
+    type: ClusterIP
+
+persistence:
+  defaultClass: true
+  defaultClassReplicaCount: 3
+  defaultFsType: ext4
+  reclaimPolicy: Retain
+  dataEngine: v1
+
+preUpgradeChecker:
+  jobEnabled: false
+  upgradeVersionCheck: false
+
+defaultSettings:
+  defaultDataPath: /var/lib/longhorn
+  defaultReplicaCount: 3
+  replicaAutoBalance: best-effort
+  storageOverProvisioningPercentage: 100
+  storageMinimalAvailablePercentage: 25
+  storageReservedPercentageForDefaultDisk: 30
+  upgradeChecker: false
+  v1DataEngine: true
+  v2DataEngine: false
