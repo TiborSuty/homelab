@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - homelab-project.yaml
+  - cloudnative-pg.yaml
   - longhorn.yaml
   - minio.yaml

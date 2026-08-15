@@ -8,6 +8,7 @@ spec:
   sourceRepos:
     - https://github.com/TiborSuty/homelab.git
     - https://charts.longhorn.io
+    - https://cloudnative-pg.github.io/charts
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
