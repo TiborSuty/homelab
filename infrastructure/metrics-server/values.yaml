@@ -1,5 +1,11 @@
 replicas: 1
 
+# Talos' default self-signed kubelet serving certificates do not contain the
+# node IP addresses as SANs. Keep this exception scoped to kubelet scraping;
+# the aggregated Metrics API exposed by metrics-server remains TLS protected.
+args:
+  - --kubelet-insecure-tls
+
 metrics:
   enabled: true
 
