@@ -41,7 +41,7 @@ spec:
                 fieldRef:
                   fieldPath: status.podIP
             - name: HOMEPAGE_ALLOWED_HOSTS
-              value: "$(MY_POD_IP):3000,homepage:3000,homepage.homepage.svc.cluster.local:3000,localhost:3001,127.0.0.1:3001,192.168.187.201:30301,192.168.187.202:30301,192.168.187.203:30301"
+              value: "$(MY_POD_IP):3000,homepage:3000,homepage.homepage.svc.cluster.local:3000,localhost:3001,127.0.0.1:3001"
             - name: LOG_TARGETS
               value: stdout
           ports:
