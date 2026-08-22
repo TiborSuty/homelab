@@ -10,6 +10,10 @@ zero to at most two concurrent runners and does not enable Docker-in-Docker.
 Each job receives a fresh runner Pod with ephemeral working storage. Runner Pods
 do not receive a Kubernetes ServiceAccount token.
 
+The shared controller exposes Prometheus metrics for itself and all runner-set
+listeners on port `8080` at `/metrics`. The monitoring stack discovers these
+Pods through its `github-arc` PodMonitor.
+
 ## Authentication
 
 Each runner chart references a repository-specific Secret. Create the homelab

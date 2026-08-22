@@ -108,6 +108,28 @@ prometheus:
     podMonitorSelector: {}
     podMonitorNamespaceSelector: {}
 
+  additionalPodMonitors:
+    - name: github-arc
+      namespaceSelector:
+        matchNames:
+          - arc-systems
+      selector:
+        matchExpressions:
+          - key: app.kubernetes.io/component
+            operator: In
+            values:
+              - controller-manager
+              - runner-scale-set-listener
+      podTargetLabels:
+        - app.kubernetes.io/component
+        - actions.github.com/repository
+        - actions.github.com/scale-set-name
+      podMetricsEndpoints:
+        - port: metrics
+          path: /metrics
+          interval: 30s
+          scrapeTimeout: 10s
+
 prometheusOperator:
   resources:
     requests:
