@@ -26,6 +26,9 @@ grafana:
   defaultDashboardsTimezone: Europe/Bratislava
   ingress:
     enabled: false
+  service:
+    type: NodePort
+    nodePort: 30300
   persistence:
     enabled: true
     storageClassName: longhorn

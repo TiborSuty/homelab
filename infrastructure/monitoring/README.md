@@ -32,16 +32,25 @@ The credentials are stored in `.local/grafana.env` with mode `600`.
 
 ## Grafana UI
 
-Keep Grafana private and forward it to the local machine:
+Grafana is permanently available from the trusted home LAN through any cluster
+node:
+
+- <http://192.168.187.201:30300>
+- <http://192.168.187.202:30300>
+- <http://192.168.187.203:30300>
+
+All three addresses route to the same Grafana Service. This uses plain HTTP and
+should remain LAN-only; do not forward port `30300` on the router.
+
+For localhost-only access, port forwarding remains available:
 
 ```sh
 KUBECONFIG="$PWD/.local/kubeconfig" \
   kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
 ```
 
-Open <http://localhost:3000> and sign in with the values from
-`.local/grafana.env`. Prometheus is the default data source; Loki is available
-for log queries in Explore.
+Sign in with the values from `.local/grafana.env`. Prometheus is the default
+data source; Loki is available for log queries in Explore.
 
 ## GitHub ARC metrics
 
