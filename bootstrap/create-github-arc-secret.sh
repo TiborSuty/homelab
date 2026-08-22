@@ -5,8 +5,8 @@ set -eu
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repository_root=$(dirname "$script_dir")
 kubeconfig_path=${KUBECONFIG:-"$repository_root/.local/kubeconfig"}
-namespace=arc-runners
-secret_name=github-arc-auth
+namespace=${GITHUB_ARC_NAMESPACE:-arc-runners}
+secret_name=${GITHUB_ARC_SECRET_NAME:-github-arc-auth}
 
 if ! command -v kubectl >/dev/null 2>&1; then
   echo "kubectl is required" >&2

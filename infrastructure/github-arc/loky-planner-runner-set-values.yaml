@@ -1,0 +1,66 @@
+githubConfigUrl: https://github.com/TiborSuty/loky-planner
+githubConfigSecret: github-arc-loky-planner-auth
+
+runnerScaleSetName: loky-planner-runners
+minRunners: 0
+maxRunners: 2
+
+controllerServiceAccount:
+  namespace: arc-systems
+  name: arc-gha-rs-controller
+
+listenerTemplate:
+  spec:
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    containers:
+      - name: listener
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+
+template:
+  spec:
+    automountServiceAccountToken: false
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
+      seccompProfile:
+        type: RuntimeDefault
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:2.336.0
+        imagePullPolicy: IfNotPresent
+        command:
+          - /home/runner/run.sh
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: "4"
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          runAsUser: 1001
+          runAsGroup: 1001
+        volumeMounts:
+          - name: work
+            mountPath: /home/runner/_work
+    volumes:
+      - name: work
+        emptyDir:
+          sizeLimit: 20Gi

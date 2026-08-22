@@ -1,19 +1,19 @@
 # GitHub Actions Runner Controller
 
-GitHub ARC `0.14.2` provides ephemeral self-hosted runners for
-`TiborSuty/homelab`. The controller and listener run in `arc-systems`; runner
-scale-set resources and job runners run in the separate `arc-runners`
-namespace.
+GitHub ARC `0.14.2` provides ephemeral self-hosted runners for these repositories:
 
-The runner scale set is named `homelab-runners`, scales from zero to at most two
-concurrent runners, and does not enable Docker-in-Docker. Each job receives a
-fresh runner Pod with ephemeral working storage. Runner Pods do not receive a
-Kubernetes ServiceAccount token.
+- `TiborSuty/homelab` uses `homelab-runners` in `arc-runners`.
+- `TiborSuty/loky-planner` uses `loky-planner-runners` in `arc-loky-planner`.
+
+The shared controller runs in `arc-systems`. Each runner scale set scales from
+zero to at most two concurrent runners and does not enable Docker-in-Docker.
+Each job receives a fresh runner Pod with ephemeral working storage. Runner Pods
+do not receive a Kubernetes ServiceAccount token.
 
 ## Authentication
 
-The runner chart references the existing Secret
-`arc-runners/github-arc-auth`. Create it before enabling the runner application:
+Each runner chart references a repository-specific Secret. Create the homelab
+Secret before enabling its runner application:
 
 ```sh
 ./bootstrap/create-github-arc-secret.sh
@@ -25,12 +25,27 @@ token, limit it to the `homelab` repository, and grant
 `Administration: Read and write`. For non-interactive use, provide it through
 `GITHUB_ARC_TOKEN`. The Secret can be rotated with `GITHUB_ARC_ROTATE=1`.
 
+Create the `loky-planner` Secret with its dedicated token before enabling that
+runner application:
+
+```sh
+GITHUB_ARC_NAMESPACE=arc-loky-planner \
+GITHUB_ARC_SECRET_NAME=github-arc-loky-planner-auth \
+  ./bootstrap/create-github-arc-secret.sh
+```
+
 ## Workflows
 
 Target the scale set by using:
 
 ```yaml
 runs-on: homelab-runners
+```
+
+Workflows in `TiborSuty/loky-planner` use:
+
+```yaml
+runs-on: loky-planner-runners
 ```
 
 The included `ARC smoke test` workflow is manual. Trigger it with:
@@ -47,4 +62,4 @@ KUBECONFIG="$PWD/.local/kubeconfig" \
 ```
 
 Jobs that require Docker builds need a separate, explicitly reviewed runner
-configuration. The current scale set is deliberately unprivileged.
+configuration. The current scale sets are deliberately unprivileged.

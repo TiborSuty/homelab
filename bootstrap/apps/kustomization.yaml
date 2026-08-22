@@ -5,6 +5,7 @@ resources:
   - homelab-project.yaml
   - github-arc-controller.yaml
   - github-arc-runners.yaml
+  - github-arc-loky-planner-runners.yaml
   - cloudnative-pg.yaml
   - longhorn.yaml
   - minio.yaml
