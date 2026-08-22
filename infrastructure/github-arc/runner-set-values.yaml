@@ -9,6 +9,23 @@ controllerServiceAccount:
   namespace: arc-systems
   name: arc-gha-rs-controller
 
+listenerTemplate:
+  spec:
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    containers:
+      - name: listener
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+
 template:
   spec:
     automountServiceAccountToken: false

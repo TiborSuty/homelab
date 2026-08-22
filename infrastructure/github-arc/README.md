@@ -1,8 +1,9 @@
 # GitHub Actions Runner Controller
 
 GitHub ARC `0.14.2` provides ephemeral self-hosted runners for
-`TiborSuty/homelab`. The controller runs in `arc-systems`; listeners and job
-runners run in the separate `arc-runners` namespace.
+`TiborSuty/homelab`. The controller and listener run in `arc-systems`; runner
+scale-set resources and job runners run in the separate `arc-runners`
+namespace.
 
 The runner scale set is named `homelab-runners`, scales from zero to at most two
 concurrent runners, and does not enable Docker-in-Docker. Each job receives a
