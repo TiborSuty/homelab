@@ -14,3 +14,4 @@ resources:
   - loki.yaml
   - alloy.yaml
   - homepage.yaml
+  - caddy.yaml

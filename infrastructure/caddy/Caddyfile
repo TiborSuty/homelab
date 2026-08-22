@@ -1,0 +1,18 @@
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	@health path /healthz
+	respond @health 200
+
+	reverse_proxy homepage.homepage.svc.cluster.local:3000 {
+		header_up Host homepage:3000
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

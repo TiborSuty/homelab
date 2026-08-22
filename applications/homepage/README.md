@@ -2,31 +2,18 @@
 
 Homepage is the private start page for homelab services. Its configuration is
 stored in `configmap.yaml`, and its read-only service account lets it display
-Kubernetes node and workload statistics. It has no authentication and is
-available from the trusted home LAN through any cluster node:
+Kubernetes node and workload statistics. Its ClusterIP Service is private;
+in-cluster Caddy makes it available from the trusted home LAN through any
+cluster node:
 
-- <http://192.168.187.201:30301>
-- <http://192.168.187.202:30301>
-- <http://192.168.187.203:30301>
+- <http://192.168.187.201:30080>
+- <http://192.168.187.202:30080>
+- <http://192.168.187.203:30080>
 
-All three addresses route to the same Homepage Service. Keep router port
-`30301` closed so that the unauthenticated dashboard is not exposed to the
-internet.
-
-An external Caddy server can use any node address as its upstream. Override the
-upstream `Host` header with a value already allowed by Homepage:
-
-```caddyfile
-http://dashboard.home.arpa {
-    reverse_proxy 192.168.187.201:30301 {
-        header_up Host homepage:3000
-    }
-}
-```
-
-Add `dashboard.home.arpa` to local DNS with the Caddy server's LAN address. The
-direct NodePort addresses remain available if Caddy is offline. This example
-uses HTTP so clients do not need to trust Caddy's private certificate authority.
+All three addresses route to the Caddy Service, which proxies to Homepage over
+cluster DNS. Keep router port `30080` closed so that the unauthenticated
+dashboard is not exposed to the internet. Caddy's manifests and routing config
+are in `../../infrastructure/caddy/`.
 
 For localhost-only access, the existing forwarding script remains available:
 
