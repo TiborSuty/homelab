@@ -44,11 +44,12 @@ KUBECONFIG="$PWD/.local/kubeconfig" \
   kubectl -n netbird get pods,groups.netbird.io,clusterproxies.netbird.io
 ```
 
-## 3. Authorize the administrator
+## 3. Authorize the administrator device
 
-In the NetBird dashboard, add the administrator user to the
-`kubernetes-admins` group. Membership in that group grants Kubernetes
-`cluster-admin` through identity impersonation; do not add ordinary users.
+In the NetBird dashboard, add the administrator's NetBird peer (for example,
+`MacBookPro.lan`) to the `kubernetes-admins` group. A request from a peer in
+that group receives Kubernetes `cluster-admin` through identity impersonation;
+do not add ordinary user devices.
 
 ## 4. Connect the Mac
 
@@ -66,9 +67,22 @@ kubeconfig context backed by the NetBird identity:
 ```sh
 netbird status
 netbird kubernetes list
-netbird kubernetes write-kubeconfig homelab
-kubectl --context homelab get nodes
+netbird kubernetes write-kubeconfig homelab \
+  --kubeconfig "$PWD/.local/netbird-kubeconfig"
+KUBECONFIG="$PWD/.local/netbird-kubeconfig" kubectl get nodes
 ```
+
+NetBird `0.77.1` can report an `in-addr.arpa` lookup error for the Kubernetes
+commands on macOS even while the NetBird hostname resolves through macOS's
+scoped DNS. In that case, create the same token-less context directly:
+
+```sh
+./bootstrap/create-netbird-kubeconfig.sh
+KUBECONFIG="$PWD/.local/netbird-kubeconfig" kubectl get nodes
+```
+
+The generated kubeconfig is under the ignored `.local/` directory and contains
+no Kubernetes credential. NetBird supplies the device identity at the proxy.
 
 Test the final command from a network outside the home LAN, such as a phone
 hotspot. Router port forwarding is not required.

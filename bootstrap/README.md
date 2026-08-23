@@ -24,6 +24,11 @@ the NetBird operator synchronizes:
 
 The complete remote-access procedure is documented in
 [`infrastructure/netbird/README.md`](../infrastructure/netbird/README.md).
+The local token-less NetBird context can be generated with:
+
+```sh
+./bootstrap/create-netbird-kubeconfig.sh
+```
 
 ## Argo CD UI
 
