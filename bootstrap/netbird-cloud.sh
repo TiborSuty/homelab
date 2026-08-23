@@ -14,8 +14,9 @@ if [ "$#" -gt 0 ]; then
   shift
 fi
 
-if ! command -v tofu >/dev/null 2>&1; then
-  echo "OpenTofu 1.12 or newer is required. Install it with: brew install opentofu" >&2
+if ! command -v terraform >/dev/null 2>&1; then
+  echo "Terraform 1.15 or newer is required." >&2
+  echo "Install it with: brew tap hashicorp/tap && brew install hashicorp/tap/terraform" >&2
   exit 1
 fi
 
@@ -31,7 +32,7 @@ fi
 
 case "$action" in
   fmt)
-    exec tofu -chdir="$terraform_directory" fmt "$@"
+    exec terraform -chdir="$terraform_directory" fmt "$@"
     ;;
 esac
 
@@ -51,5 +52,5 @@ export KUBE_CONFIG_PATH="$kubeconfig_path"
 export NB_PAT="$netbird_pat"
 unset netbird_pat
 
-tofu -chdir="$terraform_directory" init -input=false >/dev/null
-exec tofu -chdir="$terraform_directory" "$action" "$@"
+terraform -chdir="$terraform_directory" init -input=false >/dev/null
+exec terraform -chdir="$terraform_directory" "$action" "$@"

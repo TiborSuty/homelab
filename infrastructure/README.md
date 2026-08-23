@@ -10,4 +10,4 @@ certificate management, storage, DNS, observability, and secrets management.
 - `longhorn/`: replicated persistent storage managed by Argo CD.
 - `metrics-server/`: Kubernetes Resource Metrics API for `kubectl top` and Homepage.
 - `monitoring/`: Prometheus, Grafana, Loki, and Alloy observability stack.
-- `netbird/`: private cluster access plus OpenTofu-managed NetBird Cloud services.
+- `netbird/`: private cluster access plus Terraform-managed NetBird Cloud services.

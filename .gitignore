@@ -7,7 +7,7 @@
 /talos/rendered/
 /talos/legacy/
 
-# OpenTofu working data, plans, local state, and uncommitted variable files.
+# Terraform working data, plans, local state, and uncommitted variable files.
 **/.terraform/
 *.tfstate
 *.tfstate.*

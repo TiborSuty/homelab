@@ -1,6 +1,6 @@
 # NetBird Cloud configuration
 
-OpenTofu manages the NetBird Cloud reverse-proxy services that cannot yet be
+Terraform manages the NetBird Cloud reverse-proxy services that cannot yet be
 fully expressed by the Kubernetes operator. Kubernetes resources remain owned
 by Argo CD and the NetBird operator under `../access/` and the application
 directories.
@@ -16,19 +16,21 @@ proxy is a public internet entry point even though its backend is private.
 
 State is stored and locked in the `netbird` namespace using Kubernetes objects:
 
-- Secret `tfstate-default-netbird-cloud` contains the OpenTofu state;
+- Secret `tfstate-default-netbird-cloud` contains the Terraform state;
 - Lease `lock-tfstate-default-netbird-cloud` coordinates state locking.
 
 The wrapper reads the existing `netbird/netbird-mgmt-api-key` Secret and passes
-the token to the provider through `NB_PAT`. The token, local OpenTofu working
+the token to the provider through `NB_PAT`. The token, local Terraform working
 directory, plans, state, and variable files are excluded from Git.
 
 ## Commands
 
-Install OpenTofu 1.12 or newer, then run from the repository root:
+Install Terraform 1.15 or newer from HashiCorp's official Homebrew tap, then run
+from the repository root:
 
 ```sh
-brew install opentofu
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
 ./bootstrap/netbird-cloud.sh plan
 ./bootstrap/netbird-cloud.sh apply
 ./bootstrap/netbird-cloud.sh output homepage_reverse_proxy_url

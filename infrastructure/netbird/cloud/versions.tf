@@ -1,12 +1,12 @@
 terraform {
-  required_version = ">= 1.12.0, < 2.0.0"
+  required_version = ">= 1.15.0, < 2.0.0"
 
   backend "kubernetes" {
     namespace     = "netbird"
     secret_suffix = "netbird-cloud"
     labels = {
       "app.kubernetes.io/name"       = "netbird-cloud"
-      "app.kubernetes.io/managed-by" = "opentofu"
+      "app.kubernetes.io/managed-by" = "terraform"
     }
   }
 

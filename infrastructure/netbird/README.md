@@ -13,7 +13,7 @@ the Kubernetes API publicly reachable. The initial deployment consists of:
 The API token is never stored in Git. It exists only in the
 `netbird/netbird-mgmt-api-key` Kubernetes Secret.
 
-NetBird Cloud reverse-proxy services are managed separately with OpenTofu under
+NetBird Cloud reverse-proxy services are managed separately with Terraform under
 `cloud/`. Their state is stored in the cluster rather than in Git; see
 `cloud/README.md` for the authenticated workflow.
 
