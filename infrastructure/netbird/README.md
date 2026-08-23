@@ -7,6 +7,8 @@ the Kubernetes API publicly reachable. The initial deployment consists of:
 - NetBird Kubernetes operator `0.8.0` connected to NetBird Cloud;
 - a `ClusterProxy` named `homelab`;
 - a NetBird `kubernetes-admins` group mapped to Kubernetes `cluster-admin`.
+- a single routing peer exposing Homepage directly as a private network
+  resource at `homepage.homepage.homelab.internal:3000`.
 
 The API token is never stored in Git. It exists only in the
 `netbird/netbird-mgmt-api-key` Kubernetes Secret.
@@ -87,12 +89,27 @@ no Kubernetes credential. NetBird supplies the device identity at the proxy.
 Test the final command from a network outside the home LAN, such as a phone
 hotspot. Router port forwarding is not required.
 
+## Private Homepage access
+
+The NetBird account must contain the `homelab.internal` custom DNS zone,
+distributed to `dashboard-clients`, and an enabled `dashboard-access` policy
+allowing that group to reach `dashboard-services` on TCP port `3000`.
+
+With the NetBird client connected, open:
+
+```text
+http://homepage.homepage.homelab.internal:3000
+```
+
+This route targets the Homepage `ClusterIP` Service directly. Caddy remains the
+LAN entry point for ports `30080-30087`, but it is not in the NetBird path.
+
 ## Scope and recovery
 
-This first stage exposes only the Kubernetes API. It does not expose Caddy's
-admin UI ports, the Talos API, iDRAC, or the complete home LAN. A later
-`NetworkRouter` can provide selected private services after the base tunnel is
-verified.
+The NetBird configuration exposes the Kubernetes API and Homepage only. It does
+not expose Caddy's other admin UI ports, the Talos API, iDRAC, or the complete
+home LAN. Add a separate `NetworkResource` and narrowly scoped policy for each
+additional private service.
 
 Because the `ClusterProxy` runs inside Kubernetes, it cannot provide break-glass
 access while the cluster or Cilium is down. That requires a separate NetBird

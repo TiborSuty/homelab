@@ -1,0 +1,13 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkRouter
+metadata:
+  name: homelab-services
+  namespace: netbird
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  dnsZoneRef:
+    name: homelab.internal
+  workloadOverride:
+    # One peer is sufficient initially. Increase to three for node-level HA.
+    replicas: 1

@@ -10,6 +10,11 @@ cluster node:
 - <http://192.168.187.202:30080>
 - <http://192.168.187.203:30080>
 
+When connected to NetBird, Homepage is also available directly through its
+private `ClusterIP` Service:
+
+- <http://homepage.homepage.homelab.internal:3000>
+
 All three addresses route to the Caddy Service, which proxies to Homepage over
 cluster DNS. The service cards use Caddy ports `30081-30087` instead of
 `localhost`, so they also work from LAN clients. Keep router ports

@@ -5,3 +5,4 @@ resources:
   - group.yaml
   - rbac.yaml
   - cluster-proxy.yaml
+  - network-router.yaml
