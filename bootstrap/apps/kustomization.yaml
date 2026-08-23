@@ -3,6 +3,9 @@ kind: Kustomization
 
 resources:
   - homelab-project.yaml
+  - cert-manager.yaml
+  - netbird-operator.yaml
+  - netbird-access.yaml
   - github-arc-controller.yaml
   - github-arc-runners.yaml
   - github-arc-loky-planner-runners.yaml

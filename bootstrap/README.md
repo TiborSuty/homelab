@@ -14,6 +14,17 @@ Argo CD is pinned to `v3.5.1` in `argocd/kustomization.yaml`. The root
 definitions in `apps/`. Automatic self-healing is enabled, while automatic
 pruning stays disabled until the managed resources have been verified.
 
+NetBird requires a personal access token that must remain outside Git. Create
+the token in the NetBird dashboard, then bootstrap its Kubernetes Secret before
+the NetBird operator synchronizes:
+
+```sh
+./bootstrap/create-netbird-api-secret.sh
+```
+
+The complete remote-access procedure is documented in
+[`infrastructure/netbird/README.md`](../infrastructure/netbird/README.md).
+
 ## Argo CD UI
 
 Keep the UI private and forward it to the local machine when needed:

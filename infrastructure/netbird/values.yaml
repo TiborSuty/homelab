@@ -1,0 +1,35 @@
+cluster:
+  name: homelab
+  dns: svc.cluster.local
+
+netbirdAPI:
+  keyFromSecret:
+    name: netbird-mgmt-api-key
+    key: NB_API_KEY
+
+operator:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+webhook:
+  enableCertManager: true
+  failurePolicy: Fail
+  # Keep the pod mutation webhook away from unrelated workloads. Label a
+  # namespace netbird.io/injection=enabled before using NetBird sidecars there.
+  namespaceSelectors:
+    - key: netbird.io/injection
+      operator: In
+      values:
+        - enabled
+
+ingress:
+  enabled: false
+
+gatewayAPI:
+  enabled: false

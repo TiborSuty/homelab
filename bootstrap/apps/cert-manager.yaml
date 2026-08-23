@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: homelab
+  sources:
+    - repoURL: oci://quay.io/jetstack/charts/cert-manager
+      targetRevision: 1.21.1
+      path: .
+      helm:
+        releaseName: cert-manager
+        valueFiles:
+          - $values/infrastructure/cert-manager/values.yaml
+    - repoURL: https://github.com/TiborSuty/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/warn: restricted
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

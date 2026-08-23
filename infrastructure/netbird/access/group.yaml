@@ -1,0 +1,9 @@
+apiVersion: netbird.io/v1alpha1
+kind: Group
+metadata:
+  name: kubernetes-admins
+  namespace: netbird
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  name: kubernetes-admins

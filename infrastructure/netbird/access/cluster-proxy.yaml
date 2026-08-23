@@ -1,0 +1,10 @@
+apiVersion: netbird.io/v1alpha1
+kind: ClusterProxy
+metadata:
+  name: homelab
+  namespace: netbird
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  clusterName: homelab
+  serviceAccountName: clusterproxy-homelab

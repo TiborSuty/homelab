@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbird-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  project: homelab
+  sources:
+    - repoURL: oci://ghcr.io/netbirdio/helm-charts/netbird-operator
+      targetRevision: 0.8.0
+      path: .
+      helm:
+        releaseName: netbird-operator
+        valueFiles:
+          - $values/infrastructure/netbird/values.yaml
+    - repoURL: https://github.com/TiborSuty/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netbird
+  syncPolicy:
+    automated:
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+    managedNamespaceMetadata:
+      labels:
+        # NetworkRouter workloads need network administration capabilities.
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true

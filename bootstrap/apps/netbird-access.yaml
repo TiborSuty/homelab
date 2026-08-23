@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbird-access
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: homelab
+  source:
+    repoURL: https://github.com/TiborSuty/homelab.git
+    targetRevision: main
+    path: infrastructure/netbird/access
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: netbird
+  syncPolicy:
+    automated:
+      selfHeal: true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
+    syncOptions:
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
