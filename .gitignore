@@ -6,3 +6,12 @@
 /talos/base/
 /talos/rendered/
 /talos/legacy/
+
+# OpenTofu working data, plans, local state, and uncommitted variable files.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+crash.log
+crash.*.log

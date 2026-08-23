@@ -13,6 +13,10 @@ the Kubernetes API publicly reachable. The initial deployment consists of:
 The API token is never stored in Git. It exists only in the
 `netbird/netbird-mgmt-api-key` Kubernetes Secret.
 
+NetBird Cloud reverse-proxy services are managed separately with OpenTofu under
+`cloud/`. Their state is stored in the cluster rather than in Git; see
+`cloud/README.md` for the authenticated workflow.
+
 ## 1. Create the NetBird account and API token
 
 Sign in to <https://app.netbird.io> using the identity that will administer the
@@ -106,6 +110,17 @@ LAN entry point for ports `30080-30087`, but it is not in the NetBird path.
 The routing peer uses NetBird's rootless userspace image because Cilium's
 kube-proxy replacement bypasses the kernel conntrack return path used by the
 standard routing image.
+
+An additional HTTPS entry point can be reconciled through NetBird Cloud with:
+
+```sh
+./bootstrap/netbird-cloud.sh plan
+./bootstrap/netbird-cloud.sh apply
+./bootstrap/netbird-cloud.sh output homepage_reverse_proxy_url
+```
+
+The Cloud proxy requires NetBird account SSO and forwards to the same private
+Homepage network resource. It does not require router port forwarding.
 
 ## Scope and recovery
 
