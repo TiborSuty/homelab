@@ -103,6 +103,9 @@ http://homepage.homepage.homelab.internal:3000
 
 This route targets the Homepage `ClusterIP` Service directly. Caddy remains the
 LAN entry point for ports `30080-30087`, but it is not in the NetBird path.
+The routing peer uses NetBird's rootless userspace image because Cilium's
+kube-proxy replacement bypasses the kernel conntrack return path used by the
+standard routing image.
 
 ## Scope and recovery
 
