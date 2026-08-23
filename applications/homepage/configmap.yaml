@@ -33,19 +33,19 @@ data:
     - Cluster:
         - Argo CD:
             icon: argocd.png
-            href: https://localhost:8080
+            href: http://192.168.187.201:30081
             description: GitOps and application reconciliation
             namespace: argocd
             podSelector: ""
         - Longhorn:
             icon: longhorn.png
-            href: http://localhost:8081
+            href: http://192.168.187.201:30082
             description: Replicated persistent storage
             namespace: longhorn-system
             podSelector: ""
         - Hubble:
             icon: cilium.png
-            href: http://localhost:12000
+            href: http://192.168.187.201:30083
             description: Cilium network observability
             namespace: kube-system
             podSelector: app.kubernetes.io/part-of=cilium
@@ -53,25 +53,25 @@ data:
     - Observability:
         - Grafana:
             icon: grafana.png
-            href: http://localhost:3000
+            href: http://192.168.187.201:30084
             description: Metrics dashboards and log exploration
             namespace: monitoring
             app: grafana
         - Prometheus:
             icon: prometheus.png
-            href: http://localhost:9090
+            href: http://192.168.187.201:30085
             description: Metrics, targets, and PromQL
             namespace: monitoring
             app: prometheus
         - Alertmanager:
             icon: alertmanager.png
-            href: http://localhost:9093
+            href: http://192.168.187.201:30086
             description: Active alerts and notification routing
             namespace: monitoring
             app: alertmanager
         - Loki:
             icon: loki.png
-            href: http://localhost:3000/explore
+            href: http://192.168.187.201:30084/explore
             description: Kubernetes logs through Grafana
             namespace: monitoring
             app: loki
@@ -79,7 +79,7 @@ data:
     - Applications:
         - MinIO:
             icon: minio.png
-            href: http://localhost:9001
+            href: http://192.168.187.201:30087
             description: S3-compatible object storage
             namespace: minio
             app: minio
@@ -91,7 +91,7 @@ data:
             app: cloudnative-pg
         - Homepage:
             icon: homepage.png
-            href: http://localhost:3001
+            href: http://192.168.187.201:30080
             description: Homelab service dashboard
             namespace: homepage
             app: homepage

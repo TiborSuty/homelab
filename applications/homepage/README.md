@@ -11,9 +11,11 @@ cluster node:
 - <http://192.168.187.203:30080>
 
 All three addresses route to the Caddy Service, which proxies to Homepage over
-cluster DNS. Keep router port `30080` closed so that the unauthenticated
-dashboard is not exposed to the internet. Caddy's manifests and routing config
-are in `../../infrastructure/caddy/`.
+cluster DNS. The service cards use Caddy ports `30081-30087` instead of
+`localhost`, so they also work from LAN clients. Keep router ports
+`30080-30087` closed so the administrative interfaces are not exposed to the
+internet. Caddy's manifests and routing config are in
+`../../infrastructure/caddy/`.
 
 For localhost-only access, the existing forwarding script remains available:
 
