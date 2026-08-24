@@ -106,9 +106,9 @@ With the NetBird client connected, open:
 http://homepage.homepage.homelab.internal:3000
 ```
 
-Each private route targets its application `ClusterIP` Service directly. Caddy
-remains the LAN fallback for ports `30080-30087`, but it is not in the NetBird
-path.
+Each private route targets its application `ClusterIP` Service directly.
+NetBird Cloud provides the SSO-protected HTTPS entry points without exposing a
+Kubernetes NodePort.
 The routing peer uses NetBird's rootless userspace image because Cilium's
 kube-proxy replacement bypasses the kernel conntrack return path used by the
 standard routing image.
@@ -128,9 +128,9 @@ the `dashboard-clients` peer group. They do not require router port forwarding.
 ## Scope and recovery
 
 The NetBird configuration exposes the Kubernetes API and the declared dashboard
-Services only. It does not expose Caddy's NodePorts, the Talos API, iDRAC, or the
-complete home LAN. Add a separate `NetworkResource` and narrowly scoped policy
-for each additional private service.
+Services only. It does not expose Kubernetes NodePorts, the Talos API, iDRAC, or
+the complete home LAN. Add a separate `NetworkResource` and narrowly scoped
+policy for each additional private service.
 
 Because the `ClusterProxy` runs inside Kubernetes, it cannot provide break-glass
 access while the cluster or Cilium is down. That requires a separate NetBird

@@ -2,25 +2,18 @@
 
 Homepage is the private start page for homelab services. Its configuration is
 stored in `configmap.yaml`, and its read-only service account lets it display
-Kubernetes node and workload statistics. Its ClusterIP Service is private;
-in-cluster Caddy makes it available from the trusted home LAN through any
-cluster node:
+Kubernetes node and workload statistics. Its `ClusterIP` Service remains
+private. NetBird Cloud publishes the SSO-protected HTTPS entry point:
 
-- <http://192.168.187.201:30080>
-- <http://192.168.187.202:30080>
-- <http://192.168.187.203:30080>
+- <https://tiborsuty-homepage.eu1.netbird.services>
 
 When connected to NetBird, Homepage is also available directly through its
 private `ClusterIP` Service:
 
 - <http://homepage.homepage.homelab.internal:3000>
 
-All three addresses route to the Caddy Service, which proxies to Homepage over
-cluster DNS. The service cards use Caddy ports `30081-30087` instead of
-`localhost`, so they also work from LAN clients. Keep router ports
-`30080-30087` closed so the administrative interfaces are not exposed to the
-internet. Caddy's manifests and routing config are in
-`../../infrastructure/caddy/`.
+The service cards use the corresponding SSO-protected NetBird Cloud URLs. No
+router port forwarding or Kubernetes NodePort is required.
 
 For localhost-only access, the existing forwarding script remains available:
 
