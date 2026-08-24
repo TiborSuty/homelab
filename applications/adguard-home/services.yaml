@@ -26,13 +26,14 @@ kind: Service
 metadata:
   name: adguard-home-dns
   namespace: adguard-home
+  annotations:
+    lbipam.cilium.io/ips: 192.168.187.210
   labels:
     app.kubernetes.io/name: adguard-home
     app.kubernetes.io/component: dns
     homelab.tiborsuty.io/load-balancer-pool: lan-dns
 spec:
   type: LoadBalancer
-  loadBalancerClass: io.cilium/l2-announcer
   externalTrafficPolicy: Cluster
   selector:
     app.kubernetes.io/name: adguard-home
