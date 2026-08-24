@@ -15,6 +15,10 @@ account SSO from the `dashboard-clients` group. Homepage explicitly allowlists
 its stable public hostname. Do not disable authentication: Cloud's shared proxy
 is a public internet entry point even though its backends are private.
 
+Terraform also owns the `dashboard-access` policy. It permits approved clients
+to reach resources in `dashboard-services` on the backend HTTP ports used by
+Homepage (`3000`) and Grafana (`80`).
+
 ## State and credentials
 
 State is stored and locked in the `netbird` namespace using Kubernetes objects:
