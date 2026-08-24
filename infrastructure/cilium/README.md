@@ -7,12 +7,18 @@ because Kubernetes nodes cannot become Ready before a CNI is available.
 The chart version is pinned in `bootstrap/install-cilium.sh`; deployment values
 are kept in `values.yaml`.
 
+L2 announcements are enabled for explicitly selected LoadBalancer Services on
+the home LAN. IP allocation remains dormant until an application applies a
+`CiliumLoadBalancerIPPool`; AdGuard Home owns the `lan-dns` pool and its
+announcement policy.
+
 After installation, verify the release with:
 
 ```sh
 export KUBECONFIG="$PWD/.local/kubeconfig"
 helm status cilium --namespace kube-system
 cilium status --wait
+kubectl get ciliumloadbalancerippool,ciliuml2announcementpolicy
 cilium connectivity test \
   --namespace-labels pod-security.kubernetes.io/enforce=privileged
 ```

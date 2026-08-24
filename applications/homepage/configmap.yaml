@@ -95,6 +95,12 @@ data:
             description: Homelab service dashboard
             namespace: homepage
             app: homepage
+        - AdGuard Home:
+            icon: adguard-home.png
+            href: https://tiborsuty-adguard-home.eu1.netbird.services
+            description: Network-wide DNS filtering
+            namespace: adguard-home
+            app: adguard-home
 
   widgets.yaml: |-
     - kubernetes:

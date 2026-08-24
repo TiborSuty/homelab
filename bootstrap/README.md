@@ -30,6 +30,17 @@ The local token-less NetBird context can be generated with:
 ./bootstrap/create-netbird-kubeconfig.sh
 ```
 
+AdGuard Home uses a locally generated bcrypt password hash for its first boot.
+Create the namespace and Secret before the AdGuard Home application first
+syncs; the plaintext password is neither stored in Git nor sent to Kubernetes:
+
+```sh
+./bootstrap/create-adguard-home-secret.sh
+```
+
+See [`applications/adguard-home/README.md`](../applications/adguard-home/README.md)
+for the Cilium upgrade, initialization, and router cutover sequence.
+
 ## Argo CD UI
 
 Keep the UI private and forward it to the local machine when needed:

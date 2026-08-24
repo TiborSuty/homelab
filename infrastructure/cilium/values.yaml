@@ -11,6 +11,11 @@ kubeProxyReplacement: true
 k8sServiceHost: localhost
 k8sServicePort: 7445
 
+# Advertise selected LoadBalancer IPs directly on the home LAN. LB IPAM remains
+# dormant until a CiliumLoadBalancerIPPool resource is applied.
+l2announcements:
+  enabled: true
+
 # Talos mounts cgroup v2 and does not allow workloads to load kernel modules.
 securityContext:
   capabilities:

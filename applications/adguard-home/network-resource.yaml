@@ -1,0 +1,13 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: adguard-home
+  namespace: adguard-home
+spec:
+  networkRouterRef:
+    name: homelab-services
+    namespace: netbird
+  serviceRef:
+    name: adguard-home-ui
+  groups:
+    - name: dashboard-services
