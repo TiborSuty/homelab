@@ -1,0 +1,13 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  networkRouterRef:
+    name: homelab-services
+    namespace: netbird
+  serviceRef:
+    name: minio-console
+  groups:
+    - name: dashboard-services

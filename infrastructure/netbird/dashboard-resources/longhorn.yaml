@@ -1,0 +1,13 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  networkRouterRef:
+    name: homelab-services
+    namespace: netbird
+  serviceRef:
+    name: longhorn-frontend
+  groups:
+    - name: dashboard-services

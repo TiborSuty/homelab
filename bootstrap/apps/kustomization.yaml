@@ -17,4 +17,5 @@ resources:
   - loki.yaml
   - alloy.yaml
   - homepage.yaml
+  - netbird-dashboard-resources.yaml
   - caddy.yaml
