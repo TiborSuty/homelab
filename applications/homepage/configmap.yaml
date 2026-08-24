@@ -33,19 +33,19 @@ data:
     - Cluster:
         - Argo CD:
             icon: argocd.png
-            href: http://192.168.187.201:30081
+            href: https://tiborsuty-argocd.eu1.netbird.services
             description: GitOps and application reconciliation
             namespace: argocd
             podSelector: ""
         - Longhorn:
             icon: longhorn.png
-            href: http://192.168.187.201:30082
+            href: https://tiborsuty-longhorn.eu1.netbird.services
             description: Replicated persistent storage
             namespace: longhorn-system
             podSelector: ""
         - Hubble:
             icon: cilium.png
-            href: http://192.168.187.201:30083
+            href: https://tiborsuty-hubble.eu1.netbird.services
             description: Cilium network observability
             namespace: kube-system
             podSelector: app.kubernetes.io/part-of=cilium
@@ -59,13 +59,13 @@ data:
             app: grafana
         - Prometheus:
             icon: prometheus.png
-            href: http://192.168.187.201:30085
+            href: https://tiborsuty-prometheus.eu1.netbird.services
             description: Metrics, targets, and PromQL
             namespace: monitoring
             app: prometheus
         - Alertmanager:
             icon: alertmanager.png
-            href: http://192.168.187.201:30086
+            href: https://tiborsuty-alertmanager.eu1.netbird.services
             description: Active alerts and notification routing
             namespace: monitoring
             app: alertmanager
@@ -79,7 +79,7 @@ data:
     - Applications:
         - MinIO:
             icon: minio.png
-            href: http://192.168.187.201:30087
+            href: https://tiborsuty-minio.eu1.netbird.services
             description: S3-compatible object storage
             namespace: minio
             app: minio

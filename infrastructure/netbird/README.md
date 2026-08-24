@@ -7,8 +7,8 @@ the Kubernetes API publicly reachable. The initial deployment consists of:
 - NetBird Kubernetes operator `0.8.0` connected to NetBird Cloud;
 - a `ClusterProxy` named `homelab`;
 - a NetBird `kubernetes-admins` group mapped to Kubernetes `cluster-admin`.
-- a single routing peer exposing Homepage directly as a private network
-  resource at `homepage.homepage.homelab.internal:3000`.
+- a single routing peer exposing the dashboard Services as private network
+  resources.
 
 The API token is never stored in Git. It exists only in the
 `netbird/netbird-mgmt-api-key` Kubernetes Secret.
@@ -93,11 +93,12 @@ no Kubernetes credential. NetBird supplies the device identity at the proxy.
 Test the final command from a network outside the home LAN, such as a phone
 hotspot. Router port forwarding is not required.
 
-## Private Homepage access
+## Private dashboard access
 
 The NetBird account must contain the `homelab.internal` custom DNS zone,
-distributed to `dashboard-clients`, and an enabled `dashboard-access` policy
-allowing that group to reach `dashboard-services` on TCP port `3000`.
+distributed to `dashboard-clients`. Terraform manages the enabled
+`dashboard-access` policy allowing that group to reach `dashboard-services` on
+only the dashboard backend ports.
 
 With the NetBird client connected, open:
 
@@ -105,18 +106,19 @@ With the NetBird client connected, open:
 http://homepage.homepage.homelab.internal:3000
 ```
 
-This route targets the Homepage `ClusterIP` Service directly. Caddy remains the
-LAN entry point for ports `30080-30087`, but it is not in the NetBird path.
+Each private route targets its application `ClusterIP` Service directly. Caddy
+remains the LAN fallback for ports `30080-30087`, but it is not in the NetBird
+path.
 The routing peer uses NetBird's rootless userspace image because Cilium's
 kube-proxy replacement bypasses the kernel conntrack return path used by the
 standard routing image.
 
-An additional HTTPS entry point can be reconciled through NetBird Cloud with:
+SSO-protected HTTPS entry points can be reconciled through NetBird Cloud with:
 
 ```sh
 ./bootstrap/netbird-cloud.sh plan
 ./bootstrap/netbird-cloud.sh apply
-./bootstrap/netbird-cloud.sh output homepage_reverse_proxy_url
+./bootstrap/netbird-cloud.sh output
 ```
 
 The Cloud proxies require NetBird account SSO and forward to private
@@ -125,10 +127,10 @@ the `dashboard-clients` peer group. They do not require router port forwarding.
 
 ## Scope and recovery
 
-The NetBird configuration exposes the Kubernetes API and Homepage only. It does
-not expose Caddy's other admin UI ports, the Talos API, iDRAC, or the complete
-home LAN. Add a separate `NetworkResource` and narrowly scoped policy for each
-additional private service.
+The NetBird configuration exposes the Kubernetes API and the declared dashboard
+Services only. It does not expose Caddy's NodePorts, the Talos API, iDRAC, or the
+complete home LAN. Add a separate `NetworkResource` and narrowly scoped policy
+for each additional private service.
 
 Because the `ClusterProxy` runs inside Kubernetes, it cannot provide break-glass
 access while the cluster or Cilium is down. That requires a separate NetBird

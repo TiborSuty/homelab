@@ -22,6 +22,36 @@ data "netbird_network_resource" "grafana" {
   id         = var.grafana_resource_id
 }
 
+data "netbird_network_resource" "argocd" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.argocd_resource_id
+}
+
+data "netbird_network_resource" "longhorn" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.longhorn_resource_id
+}
+
+data "netbird_network_resource" "hubble" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.hubble_resource_id
+}
+
+data "netbird_network_resource" "prometheus" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.prometheus_resource_id
+}
+
+data "netbird_network_resource" "alertmanager" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.alertmanager_resource_id
+}
+
+data "netbird_network_resource" "minio" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.minio_resource_id
+}
+
 data "netbird_reverse_proxy_domain" "free" {
   type = "free"
 }

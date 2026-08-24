@@ -7,10 +7,16 @@ directories.
 
 The managed proxies publish:
 
+- Argo CD at `https://tiborsuty-argocd.eu1.netbird.services`;
+- Longhorn at `https://tiborsuty-longhorn.eu1.netbird.services`;
+- Hubble at `https://tiborsuty-hubble.eu1.netbird.services`;
 - Homepage at `https://tiborsuty-homepage.eu1.netbird.services`;
-- Grafana at `https://tiborsuty-grafana.eu1.netbird.services`.
+- Grafana at `https://tiborsuty-grafana.eu1.netbird.services`;
+- Prometheus at `https://tiborsuty-prometheus.eu1.netbird.services`;
+- Alertmanager at `https://tiborsuty-alertmanager.eu1.netbird.services`;
+- MinIO at `https://tiborsuty-minio.eu1.netbird.services`.
 
-Both forward HTTP to operator-created network resources and require NetBird
+All forward HTTP to operator-created network resources and require NetBird
 account SSO. SSO distribution groups are intentionally unset because they must
 come from the identity provider; NetBird peer groups are not valid substitutes.
 Homepage explicitly allowlists its stable public hostname. Do not disable
@@ -19,8 +25,8 @@ though its backends are private.
 
 Terraform also owns the `dashboard-access` policy. It restricts direct mesh
 access to the `dashboard-clients` peer group and permits those clients to reach
-resources in `dashboard-services` on the backend HTTP ports used by Homepage
-(`3000`) and Grafana (`80`).
+resources in `dashboard-services` on only the backend HTTP ports used by the
+managed dashboards (`80`, `3000`, `9001`, `9090`, and `9093`).
 
 ## State and credentials
 
@@ -43,7 +49,7 @@ brew tap hashicorp/tap
 brew install hashicorp/tap/terraform
 ./bootstrap/netbird-cloud.sh plan
 ./bootstrap/netbird-cloud.sh apply
-./bootstrap/netbird-cloud.sh output homepage_reverse_proxy_url
+./bootstrap/netbird-cloud.sh output
 ```
 
 The helper uses `.local/kubeconfig` unless `KUBECONFIG` is set. It initializes
