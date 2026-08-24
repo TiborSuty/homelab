@@ -97,7 +97,7 @@ data:
             app: homepage
         - AdGuard Home:
             icon: adguard-home.png
-            href: https://tiborsuty-adguard-home.eu1.netbird.services
+            href: http://adguard-home-ui.adguard-home.homelab.internal:3000
             description: Network-wide DNS filtering
             namespace: adguard-home
             app: adguard-home

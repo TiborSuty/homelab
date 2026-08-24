@@ -57,6 +57,9 @@ export KUBECONFIG="$PWD/.local/kubeconfig"
 kubectl --namespace adguard-home port-forward service/adguard-home-ui 3000:3000
 ```
 
+NetBird clients can open the same UI through the operator-managed private DNS
+record at `http://adguard-home-ui.adguard-home.homelab.internal:3000`.
+
 Open `http://localhost:3000` and sign in as `admin` with the password supplied
 to the helper. The password hash, live configuration, query log, and filter
 data are stored only in Kubernetes or on retained Longhorn volumes.
