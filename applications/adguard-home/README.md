@@ -73,7 +73,7 @@ Renew a client's DHCP lease and verify both direct and DHCP-provided DNS:
 
 ```sh
 dig @192.168.187.210 example.com
-dig @192.168.187.210 adservice.google.com
+dig @192.168.187.210 ad.ae.doubleclick.net
 dig adservice.google.com
 ```
 

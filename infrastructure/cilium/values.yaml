@@ -16,6 +16,9 @@ k8sServicePort: 7445
 l2announcements:
   enabled: true
 
+# Roll agents gradually when a Helm-managed Cilium ConfigMap setting changes.
+rollOutCiliumPods: true
+
 # Talos mounts cgroup v2 and does not allow workloads to load kernel modules.
 securityContext:
   capabilities:
