@@ -119,9 +119,9 @@ An additional HTTPS entry point can be reconciled through NetBird Cloud with:
 ./bootstrap/netbird-cloud.sh output homepage_reverse_proxy_url
 ```
 
-The Cloud proxies require NetBird account SSO from the `dashboard-clients`
-group and forward to private operator-managed network resources. They do not
-require router port forwarding.
+The Cloud proxies require NetBird account SSO and forward to private
+operator-managed network resources. Direct mesh access remains restricted to
+the `dashboard-clients` peer group. They do not require router port forwarding.
 
 ## Scope and recovery
 

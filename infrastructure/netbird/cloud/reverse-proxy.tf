@@ -18,8 +18,9 @@ resource "netbird_reverse_proxy_service" "homepage" {
   # NetBird account SSO, so only authenticated organization users are admitted.
   auth = {
     bearer_auth = {
-      enabled             = true
-      distribution_groups = [data.netbird_group.dashboard_clients.id]
+      # SSO distribution groups must come from the identity provider, not from
+      # NetBird peer groups. Direct mesh access remains restricted by policy.
+      enabled = true
     }
   }
 }
@@ -42,8 +43,7 @@ resource "netbird_reverse_proxy_service" "grafana" {
 
   auth = {
     bearer_auth = {
-      enabled             = true
-      distribution_groups = [data.netbird_group.dashboard_clients.id]
+      enabled = true
     }
   }
 }

@@ -11,13 +11,16 @@ The managed proxies publish:
 - Grafana at `https://tiborsuty-grafana.eu1.netbird.services`.
 
 Both forward HTTP to operator-created network resources and require NetBird
-account SSO from the `dashboard-clients` group. Homepage explicitly allowlists
-its stable public hostname. Do not disable authentication: Cloud's shared proxy
-is a public internet entry point even though its backends are private.
+account SSO. SSO distribution groups are intentionally unset because they must
+come from the identity provider; NetBird peer groups are not valid substitutes.
+Homepage explicitly allowlists its stable public hostname. Do not disable
+authentication: Cloud's shared proxy is a public internet entry point even
+though its backends are private.
 
-Terraform also owns the `dashboard-access` policy. It permits approved clients
-to reach resources in `dashboard-services` on the backend HTTP ports used by
-Homepage (`3000`) and Grafana (`80`).
+Terraform also owns the `dashboard-access` policy. It restricts direct mesh
+access to the `dashboard-clients` peer group and permits those clients to reach
+resources in `dashboard-services` on the backend HTTP ports used by Homepage
+(`3000`) and Grafana (`80`).
 
 ## State and credentials
 
