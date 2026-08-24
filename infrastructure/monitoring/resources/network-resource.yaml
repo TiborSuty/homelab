@@ -1,0 +1,12 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: grafana
+spec:
+  networkRouterRef:
+    name: homelab-services
+    namespace: netbird
+  serviceRef:
+    name: monitoring-grafana
+  groups:
+    - name: dashboard-services

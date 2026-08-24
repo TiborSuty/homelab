@@ -18,7 +18,32 @@ resource "netbird_reverse_proxy_service" "homepage" {
   # NetBird account SSO, so only authenticated organization users are admitted.
   auth = {
     bearer_auth = {
-      enabled = true
+      enabled             = true
+      distribution_groups = [data.netbird_group.dashboard_clients.id]
+    }
+  }
+}
+
+resource "netbird_reverse_proxy_service" "grafana" {
+  name              = "grafana"
+  domain            = "tiborsuty-grafana.${data.netbird_reverse_proxy_domain.free.domain}"
+  enabled           = true
+  pass_host_header  = true
+  rewrite_redirects = true
+
+  targets = [{
+    target_id   = data.netbird_network_resource.grafana.id
+    target_type = "host"
+    port        = 80
+    protocol    = "http"
+    path        = "/"
+    enabled     = true
+  }]
+
+  auth = {
+    bearer_auth = {
+      enabled             = true
+      distribution_groups = [data.netbird_group.dashboard_clients.id]
     }
   }
 }

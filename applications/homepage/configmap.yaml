@@ -53,7 +53,7 @@ data:
     - Observability:
         - Grafana:
             icon: grafana.png
-            href: http://192.168.187.201:30084
+            href: https://tiborsuty-grafana.eu1.netbird.services
             description: Metrics dashboards and log exploration
             namespace: monitoring
             app: grafana
@@ -71,7 +71,7 @@ data:
             app: alertmanager
         - Loki:
             icon: loki.png
-            href: http://192.168.187.201:30084/explore
+            href: https://tiborsuty-grafana.eu1.netbird.services/explore
             description: Kubernetes logs through Grafana
             namespace: monitoring
             app: loki
@@ -91,7 +91,7 @@ data:
             app: cloudnative-pg
         - Homepage:
             icon: homepage.png
-            href: http://192.168.187.201:30080
+            href: https://tiborsuty-homepage.eu1.netbird.services
             description: Homelab service dashboard
             namespace: homepage
             app: homepage

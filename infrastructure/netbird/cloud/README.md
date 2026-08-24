@@ -5,12 +5,15 @@ fully expressed by the Kubernetes operator. Kubernetes resources remain owned
 by Argo CD and the NetBird operator under `../access/` and the application
 directories.
 
-The Homepage proxy publishes
-`https://tiborsuty-homepage.eu1.netbird.services`, forwards HTTP to the
-operator-created Homepage network resource on port `3000`, and requires
-NetBird account SSO. It passes this stable public hostname to Homepage, where
-it is explicitly allowlisted. Do not disable authentication: Cloud's shared
-proxy is a public internet entry point even though its backend is private.
+The managed proxies publish:
+
+- Homepage at `https://tiborsuty-homepage.eu1.netbird.services`;
+- Grafana at `https://tiborsuty-grafana.eu1.netbird.services`.
+
+Both forward HTTP to operator-created network resources and require NetBird
+account SSO from the `dashboard-clients` group. Homepage explicitly allowlists
+its stable public hostname. Do not disable authentication: Cloud's shared proxy
+is a public internet entry point even though its backends are private.
 
 ## State and credentials
 

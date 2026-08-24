@@ -18,6 +18,7 @@ spec:
     - repoURL: https://github.com/TiborSuty/homelab.git
       targetRevision: main
       ref: values
+      path: infrastructure/monitoring/resources
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
