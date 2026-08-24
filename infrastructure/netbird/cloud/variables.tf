@@ -8,3 +8,14 @@ variable "homepage_resource_id" {
     error_message = "homepage_resource_id must not be empty."
   }
 }
+
+variable "grafana_resource_id" {
+  description = "NetBird resource ID reported by the Grafana NetworkResource status."
+  type        = string
+  default     = "da67c33l0ubs73c7p0og"
+
+  validation {
+    condition     = length(var.grafana_resource_id) > 0
+    error_message = "grafana_resource_id must not be empty."
+  }
+}

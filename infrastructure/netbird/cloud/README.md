@@ -42,11 +42,11 @@ brew install hashicorp/tap/terraform
 The helper uses `.local/kubeconfig` unless `KUBECONFIG` is set. It initializes
 the Kubernetes backend before commands that need state.
 
-If the Homepage `NetworkResource` is deleted and recreated, update
-`homepage_resource_id` in `variables.tf` from:
+If an operator-managed `NetworkResource` is deleted and recreated, update its
+corresponding ID in `variables.tf` from:
 
 ```sh
 KUBECONFIG="$PWD/.local/kubeconfig" \
-  kubectl -n homepage get networkresource homepage \
-  -o jsonpath='{.status.resourceID}{"\n"}'
+  kubectl get networkresource --all-namespaces \
+  -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,RESOURCE-ID:.status.resourceID'
 ```
