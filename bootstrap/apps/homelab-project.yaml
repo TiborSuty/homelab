@@ -9,6 +9,7 @@ spec:
     - https://github.com/TiborSuty/homelab.git
     - https://charts.longhorn.io
     - https://cloudnative-pg.github.io/charts
+    - https://helm.coder.com/v2
     - https://prometheus-community.github.io/helm-charts
     - https://grafana.github.io/helm-charts
     - https://grafana-community.github.io/helm-charts

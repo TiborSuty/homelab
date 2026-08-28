@@ -1,0 +1,30 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: coder-postgres
+  namespace: coder-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+  labels:
+    app.kubernetes.io/name: coder-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: coder
+spec:
+  description: PostgreSQL database for the Coder control plane
+  instances: 1
+  bootstrap:
+    initdb:
+      database: coder
+      owner: coder
+  storage:
+    storageClass: longhorn
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  monitoring:
+    enablePodMonitor: false

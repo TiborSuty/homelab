@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coder
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: homelab
+  sources:
+    - repoURL: https://helm.coder.com/v2
+      chart: coder
+      targetRevision: 2.36.3
+      helm:
+        releaseName: coder
+        valueFiles:
+          - $values/infrastructure/coder/values.yaml
+    - repoURL: https://github.com/TiborSuty/homelab.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/TiborSuty/homelab.git
+      targetRevision: main
+      path: infrastructure/coder
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: coder-system
+  syncPolicy:
+    automated:
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/warn: restricted
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
