@@ -113,6 +113,8 @@ coder create backend-dev \
 coder create frontend-dev \
   --template kubernetes-devcontainer \
   --parameter repo=git@github.com:OWNER/frontend-monorepo.git \
+  --parameter dockerfile_path=Dockerfile.dev \
+  --parameter workspace_folder=/workspace \
   --parameter service_port=5173
 ```
 
@@ -128,3 +130,7 @@ nvim .
 Services use the stable DNS pattern
 `coder-<owner>-<workspace>.coder-workspaces.svc.cluster.local`. Processes must
 bind to `0.0.0.0` to accept connections from the other workspace.
+
+Compose-based devcontainers are supported through their underlying development
+Dockerfile. Set `dockerfile_path` and the image's expected `workspace_folder`
+when creating that workspace.

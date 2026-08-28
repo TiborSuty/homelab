@@ -75,6 +75,26 @@ data "coder_parameter" "repo" {
   order        = 4
 }
 
+data "coder_parameter" "workspace_folder" {
+  name         = "workspace_folder"
+  display_name = "Workspace folder"
+  description  = "Absolute path where Envbuilder clones the repository and mounts persistent storage."
+  type         = "string"
+  default      = "/workspaces/project"
+  mutable      = false
+  order        = 5
+}
+
+data "coder_parameter" "dockerfile_path" {
+  name         = "dockerfile_path"
+  display_name = "Dockerfile path"
+  description  = "Optional repository-relative Dockerfile. Use this when the devcontainer is Compose-based."
+  type         = "string"
+  default      = ""
+  mutable      = false
+  order        = 6
+}
+
 data "coder_parameter" "service_port" {
   name         = "service_port"
   display_name = "Application port"
@@ -82,7 +102,7 @@ data "coder_parameter" "service_port" {
   type         = "number"
   default      = "3000"
   mutable      = true
-  order        = 5
+  order        = 7
 
   validation {
     min = 1
@@ -97,7 +117,7 @@ data "coder_parameter" "fallback_image" {
   type         = "string"
   default      = "codercom/enterprise-base:ubuntu"
   mutable      = true
-  order        = 6
+  order        = 8
 }
 
 locals {
@@ -131,11 +151,13 @@ locals {
   envbuilder_env = {
     CODER_AGENT_TOKEN                     = coder_agent.main.token
     CODER_AGENT_URL                       = local.coder_agent_url
+    ENVBUILDER_DOCKERFILE_PATH            = data.coder_parameter.dockerfile_path.value
+    ENVBUILDER_EXIT_ON_BUILD_FAILURE      = "true"
     ENVBUILDER_FALLBACK_IMAGE             = data.coder_parameter.fallback_image.value
     ENVBUILDER_GIT_SSH_PRIVATE_KEY_BASE64 = base64encode(try(data.coder_workspace_owner.current.ssh_private_key, ""))
     ENVBUILDER_GIT_URL                    = data.coder_parameter.repo.value
     ENVBUILDER_INIT_SCRIPT                = local.rewritten_agent_init_script
-    ENVBUILDER_WORKSPACE_FOLDER           = "/workspaces/project"
+    ENVBUILDER_WORKSPACE_FOLDER           = data.coder_parameter.workspace_folder.value
   }
 }
 
@@ -227,7 +249,7 @@ resource "kubernetes_deployment_v1" "workspace" {
 
           volume_mount {
             name       = "workspaces"
-            mount_path = "/workspaces"
+            mount_path = data.coder_parameter.workspace_folder.value
             read_only  = false
           }
         }
@@ -321,7 +343,7 @@ resource "coder_agent" "main" {
   metadata {
     display_name = "Workspace disk"
     key          = "2_workspace_disk"
-    script       = "coder stat disk --path /workspaces"
+    script       = "coder stat disk --path ${data.coder_parameter.workspace_folder.value}"
     interval     = 60
     timeout      = 1
   }
@@ -334,6 +356,16 @@ resource "coder_metadata" "workspace" {
   item {
     key   = "repository"
     value = data.coder_parameter.repo.value
+  }
+
+  item {
+    key   = "workspace folder"
+    value = data.coder_parameter.workspace_folder.value
+  }
+
+  item {
+    key   = "build source"
+    value = data.coder_parameter.dockerfile_path.value == "" ? ".devcontainer/devcontainer.json" : data.coder_parameter.dockerfile_path.value
   }
 
   item {
