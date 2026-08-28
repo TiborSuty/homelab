@@ -16,6 +16,22 @@ spec:
     initdb:
       database: coder
       owner: coder
+      secret:
+        name: coder-postgres-credentials
+  managed:
+    roles:
+      - name: coder
+        ensure: present
+        login: true
+        superuser: false
+        createdb: false
+        createrole: false
+        inherit: true
+        replication: false
+        bypassrls: false
+        connectionLimit: -1
+        passwordSecret:
+          name: coder-postgres-credentials
   storage:
     storageClass: longhorn
     size: 10Gi
