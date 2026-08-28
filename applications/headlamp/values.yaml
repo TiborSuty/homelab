@@ -58,6 +58,15 @@ securityContext:
   seccompProfile:
     type: RuntimeDefault
 
+volumeMounts:
+  - name: headlamp-config
+    mountPath: /home/headlamp/.config
+
+volumes:
+  - name: headlamp-config
+    emptyDir:
+      sizeLimit: 16Mi
+
 resources:
   requests:
     cpu: 50m
