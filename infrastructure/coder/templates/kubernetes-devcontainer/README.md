@@ -24,6 +24,8 @@ Envbuilder does not support Compose-based devcontainers. For those repositories,
 set `dockerfile_path` to the repository's development Dockerfile and set
 `workspace_folder` to the path expected by that image. Leaving
 `dockerfile_path` empty uses `.devcontainer/devcontainer.json` directly.
+Clone and build failures stop the workspace instead of starting an unrelated
+fallback image.
 
 Neovim and tmux should be installed by the repository's devcontainer image or
 features. This template deliberately does not install a browser IDE.

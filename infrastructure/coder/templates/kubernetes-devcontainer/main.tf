@@ -110,16 +110,6 @@ data "coder_parameter" "service_port" {
   }
 }
 
-data "coder_parameter" "fallback_image" {
-  name         = "fallback_image"
-  display_name = "Fallback image"
-  description  = "Image used to make the workspace reachable when the devcontainer build fails."
-  type         = "string"
-  default      = "codercom/enterprise-base:ubuntu"
-  mutable      = true
-  order        = 8
-}
-
 locals {
   namespace        = "coder-workspaces"
   storage_class    = "longhorn-coder-workspaces"
@@ -153,7 +143,6 @@ locals {
     CODER_AGENT_URL                       = local.coder_agent_url
     ENVBUILDER_DOCKERFILE_PATH            = data.coder_parameter.dockerfile_path.value
     ENVBUILDER_EXIT_ON_BUILD_FAILURE      = "true"
-    ENVBUILDER_FALLBACK_IMAGE             = data.coder_parameter.fallback_image.value
     ENVBUILDER_GIT_SSH_PRIVATE_KEY_BASE64 = base64encode(try(data.coder_workspace_owner.current.ssh_private_key, ""))
     ENVBUILDER_GIT_URL                    = data.coder_parameter.repo.value
     ENVBUILDER_INIT_SCRIPT                = local.rewritten_agent_init_script
