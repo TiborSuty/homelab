@@ -5,7 +5,8 @@ deploys the official Coder Helm chart and a dedicated CloudNativePG database
 into the restricted `coder-system` namespace.
 
 - Coder chart and application: `2.36.3`
-- PostgreSQL cluster: `coder-postgres`, one instance on Longhorn
+- PostgreSQL cluster: `coder-postgres`, one PostgreSQL `18.4` instance on
+  Longhorn
 - PostgreSQL credentials: stored only in the Kubernetes Secret
   `coder-postgres-credentials`; no database password is stored in Git
 - Exposure: internal ClusterIP only

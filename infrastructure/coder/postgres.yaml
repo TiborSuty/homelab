@@ -12,6 +12,7 @@ metadata:
 spec:
   description: PostgreSQL database for the Coder control plane
   instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
   bootstrap:
     initdb:
       database: coder
