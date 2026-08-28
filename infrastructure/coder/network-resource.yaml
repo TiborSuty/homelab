@@ -1,0 +1,16 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: coder
+  namespace: coder-system
+  labels:
+    app.kubernetes.io/name: coder
+    app.kubernetes.io/component: network-access
+spec:
+  networkRouterRef:
+    name: homelab-services
+    namespace: netbird
+  serviceRef:
+    name: coder
+  groups:
+    - name: dashboard-services

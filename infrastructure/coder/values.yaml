@@ -1,6 +1,8 @@
 coder:
-  envUseClusterAccessURL: true
+  envUseClusterAccessURL: false
   env:
+    - name: CODER_ACCESS_URL
+      value: https://tiborsuty-coder.eu1.netbird.services
     - name: CODER_PG_CONNECTION_URL
       valueFrom:
         secretKeyRef:

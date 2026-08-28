@@ -77,6 +77,12 @@ data:
             app: loki
 
     - Applications:
+        - Coder:
+            icon: coder.png
+            href: https://tiborsuty-coder.eu1.netbird.services
+            description: Remote development workspaces
+            namespace: coder-system
+            app: coder
         - MinIO:
             icon: minio.png
             href: https://tiborsuty-minio.eu1.netbird.services
