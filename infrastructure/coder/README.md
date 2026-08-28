@@ -11,6 +11,7 @@ into the restricted `coder-system` namespace.
   `coder-postgres-credentials`; no database password is stored in Git
 - Browser exposure: NetBird Cloud HTTPS reverse proxy with account SSO
 - Private CLI exposure: NetBird `NetworkResource` backed by the ClusterIP
+- Canonical Coder URL: `http://coder.coder-system.homelab.internal`
 - Workspace permissions: disabled until the workspace template is added
 - Telemetry: disabled
 
@@ -57,6 +58,10 @@ kubectl --namespace coder-system get secret coder-postgres-credentials \
 Open the SSO-protected browser endpoint:
 
 - <https://tiborsuty-coder.eu1.netbird.services>
+
+The HTTPS proxy is an alternate browser entry point. Coder's canonical URL is
+the private NetBird hostname below so CLI authentication cookies and callbacks
+stay on one origin.
 
 When connected to NetBird, use the private service address for the Coder CLI:
 
