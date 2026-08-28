@@ -11,6 +11,7 @@ resources:
   - github-arc-loky-planner-runners.yaml
   - cloudnative-pg.yaml
   - longhorn.yaml
+  - headlamp.yaml
   - coder.yaml
   - minio.yaml
   - metrics-server.yaml
