@@ -14,6 +14,24 @@ coder:
   serviceAccount:
     workspacePerms: false
     enableDeployments: false
+    workspaceNamespaces:
+      - name: coder-workspaces
+        workspacePerms: true
+        enableDeployments: true
+        extraRules:
+          - apiGroups:
+              - ""
+            resources:
+              - services
+            verbs:
+              - create
+              - delete
+              - deletecollection
+              - get
+              - list
+              - patch
+              - update
+              - watch
 
   securityContext:
     capabilities:

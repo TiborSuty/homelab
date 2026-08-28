@@ -12,7 +12,11 @@ into the restricted `coder-system` namespace.
 - Browser exposure: NetBird Cloud HTTPS reverse proxy with account SSO
 - Private CLI exposure: NetBird `NetworkResource` backed by the ClusterIP
 - Canonical Coder URL: `http://coder.coder-system.homelab.internal`
-- Workspace permissions: disabled until the workspace template is added
+- Workspace namespace: `coder-workspaces`, enforced at Pod Security baseline
+- Workspace permissions: namespace-scoped through the Coder ServiceAccount
+- Workspace storage: `longhorn-coder-workspaces` with two replicas and Delete
+  reclaim semantics
+- Workspace template: `kubernetes-devcontainer`, using Envbuilder `1.3.0`
 - Telemetry: disabled
 
 ## Database credentials
@@ -71,8 +75,8 @@ coder login http://coder.coder-system.homelab.internal
 
 Workspace agents use the in-cluster address
 `http://coder.coder-system.svc.cluster.local`. The custom workspace template
-must set this internal agent URL so agent traffic does not pass through the
-browser SSO layer.
+sets this internal agent URL so agent traffic does not pass through the browser
+SSO layer.
 
 For break-glass localhost access, forward the private Service to the Mac:
 
@@ -84,8 +88,43 @@ kubectl --namespace coder-system port-forward service/coder 3000:80
 Open `http://localhost:3000`. Port forwarding is not required during normal
 operation.
 
-## Next phase
+## Publish the workspace template
 
-Workspace Pods will run in a separate namespace. Enabling workspace RBAC and
-installing the custom Kubernetes devcontainer template are intentionally not
-part of this control-plane deployment.
+The Terraform source is stored alongside the GitOps configuration, while Coder
+stores published template versions in PostgreSQL. Publish a new version after
+changing the template source:
+
+```sh
+coder templates push kubernetes-devcontainer \
+  --directory infrastructure/coder/templates/kubernetes-devcontainer \
+  --message "Update Kubernetes devcontainer workspace" \
+  --yes
+```
+
+Create one workspace per repository. Use the SSH clone URL for a private
+repository:
+
+```sh
+coder create backend-dev \
+  --template kubernetes-devcontainer \
+  --parameter repo=git@github.com:OWNER/backend-monorepo.git \
+  --parameter service_port=3000
+
+coder create frontend-dev \
+  --template kubernetes-devcontainer \
+  --parameter repo=git@github.com:OWNER/frontend-monorepo.git \
+  --parameter service_port=5173
+```
+
+Connect from the Mac and start the terminal editor inside the workspace:
+
+```sh
+coder ssh backend-dev
+cd ~/project
+tmux new -As dev
+nvim .
+```
+
+Services use the stable DNS pattern
+`coder-<owner>-<workspace>.coder-workspaces.svc.cluster.local`. Processes must
+bind to `0.0.0.0` to accept connections from the other workspace.
