@@ -11,6 +11,7 @@ The managed proxies publish:
 - Longhorn at `https://tiborsuty-longhorn.eu1.netbird.services`;
 - Hubble at `https://tiborsuty-hubble.eu1.netbird.services`;
 - Homepage at `https://tiborsuty-homepage.eu1.netbird.services`;
+- Coder at `https://tiborsuty-coder.eu1.netbird.services`;
 - Grafana at `https://tiborsuty-grafana.eu1.netbird.services`;
 - Prometheus at `https://tiborsuty-prometheus.eu1.netbird.services`;
 - Alertmanager at `https://tiborsuty-alertmanager.eu1.netbird.services`;
@@ -22,6 +23,10 @@ come from the identity provider; NetBird peer groups are not valid substitutes.
 Homepage explicitly allowlists its stable public hostname. Do not disable
 authentication: Cloud's shared proxy is a public internet entry point even
 though its backends are private.
+
+Coder's SSO-protected proxy is intended for browser access. Coder CLI traffic
+uses `http://coder.coder-system.homelab.internal` through the private NetBird
+network resource, and workspace agents use the in-cluster Service directly.
 
 Terraform also owns the `dashboard-access` policy. It restricts direct mesh
 access to the `dashboard-clients` peer group and permits those clients to reach

@@ -25,6 +25,31 @@ resource "netbird_reverse_proxy_service" "homepage" {
   }
 }
 
+resource "netbird_reverse_proxy_service" "coder" {
+  name              = "coder"
+  domain            = "tiborsuty-coder.${data.netbird_reverse_proxy_domain.free.domain}"
+  enabled           = true
+  pass_host_header  = true
+  rewrite_redirects = true
+
+  targets = [{
+    target_id   = data.netbird_network_resource.coder.id
+    target_type = "host"
+    port        = 80
+    protocol    = "http"
+    path        = "/"
+    enabled     = true
+  }]
+
+  # Browser access is protected by NetBird account SSO. Coder CLI and
+  # workspace agents use private/internal endpoints instead of this URL.
+  auth = {
+    bearer_auth = {
+      enabled = true
+    }
+  }
+}
+
 resource "netbird_reverse_proxy_service" "grafana" {
   name              = "grafana"
   domain            = "tiborsuty-grafana.${data.netbird_reverse_proxy_domain.free.domain}"

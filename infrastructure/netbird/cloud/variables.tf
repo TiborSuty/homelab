@@ -9,6 +9,17 @@ variable "homepage_resource_id" {
   }
 }
 
+variable "coder_resource_id" {
+  description = "NetBird resource ID reported by the Coder NetworkResource status."
+  type        = string
+  default     = "da8lhp2fadhs73dl2oe0"
+
+  validation {
+    condition     = length(var.coder_resource_id) > 0
+    error_message = "coder_resource_id must not be empty."
+  }
+}
+
 variable "grafana_resource_id" {
   description = "NetBird resource ID reported by the Grafana NetworkResource status."
   type        = string
