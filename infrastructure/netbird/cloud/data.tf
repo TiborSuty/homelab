@@ -17,6 +17,11 @@ data "netbird_network_resource" "homepage" {
   id         = var.homepage_resource_id
 }
 
+data "netbird_network_resource" "headlamp" {
+  network_id = data.netbird_network.homelab_services.id
+  id         = var.headlamp_resource_id
+}
+
 data "netbird_network_resource" "coder" {
   network_id = data.netbird_network.homelab_services.id
   id         = var.coder_resource_id

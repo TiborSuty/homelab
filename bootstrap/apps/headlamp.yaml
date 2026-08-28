@@ -7,6 +7,14 @@ metadata:
     argocd.argoproj.io/sync-wave: "50"
 spec:
   project: homelab
+  ignoreDifferences:
+    # The Kubernetes aggregation controller populates these rules from the
+    # selected read-only roles after Argo applies the empty aggregate role.
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: headlamp-cluster-view
+      jsonPointers:
+        - /rules
   sources:
     - repoURL: https://kubernetes-sigs.github.io/headlamp/
       chart: headlamp

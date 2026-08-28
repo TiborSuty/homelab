@@ -11,6 +11,7 @@ The managed proxies publish:
 - Longhorn at `https://tiborsuty-longhorn.eu1.netbird.services`;
 - Hubble at `https://tiborsuty-hubble.eu1.netbird.services`;
 - Homepage at `https://tiborsuty-homepage.eu1.netbird.services`;
+- Headlamp at `https://tiborsuty-headlamp.eu1.netbird.services`;
 - Coder at `https://tiborsuty-coder.eu1.netbird.services`;
 - Grafana at `https://tiborsuty-grafana.eu1.netbird.services`;
 - Prometheus at `https://tiborsuty-prometheus.eu1.netbird.services`;

@@ -98,3 +98,16 @@ rules:
       - get
       - list
       - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: headlamp-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: headlamp-cluster-view
+subjects:
+  - kind: ServiceAccount
+    name: headlamp
+    namespace: headlamp

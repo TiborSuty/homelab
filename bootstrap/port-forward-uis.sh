@@ -41,6 +41,7 @@ stop_forwards() {
 trap stop_forwards EXIT INT TERM
 
 start_forward homepage homepage 3001:3000
+start_forward headlamp headlamp 4466:80
 start_forward argocd argocd-server 8080:443
 start_forward longhorn-system longhorn-frontend 8081:80
 start_forward kube-system hubble-ui 12000:80
@@ -50,6 +51,7 @@ start_forward monitoring monitoring-kube-prometheus-alertmanager 9093:9093
 start_forward minio minio-console 9001:9001
 
 echo "Homepage:    http://localhost:3001"
+echo "Headlamp:    http://localhost:4466"
 echo "Argo CD:     https://localhost:8080"
 echo "Longhorn:    http://localhost:8081"
 echo "Hubble:      http://localhost:12000"

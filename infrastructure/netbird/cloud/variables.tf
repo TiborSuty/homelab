@@ -9,6 +9,17 @@ variable "homepage_resource_id" {
   }
 }
 
+variable "headlamp_resource_id" {
+  description = "NetBird resource ID reported by the Headlamp NetworkResource status."
+  type        = string
+  default     = "da8np6jl0ubs738nu63g"
+
+  validation {
+    condition     = length(var.headlamp_resource_id) > 0
+    error_message = "headlamp_resource_id must not be empty."
+  }
+}
+
 variable "coder_resource_id" {
   description = "NetBird resource ID reported by the Coder NetworkResource status."
   type        = string

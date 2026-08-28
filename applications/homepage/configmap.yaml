@@ -83,6 +83,12 @@ data:
             description: Remote development workspaces
             namespace: coder-system
             app: coder
+        - Headlamp:
+            icon: headlamp.png
+            href: https://tiborsuty-headlamp.eu1.netbird.services
+            description: Read-only Kubernetes resource dashboard
+            namespace: headlamp
+            app: headlamp
         - MinIO:
             icon: minio.png
             href: https://tiborsuty-minio.eu1.netbird.services

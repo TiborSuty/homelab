@@ -25,6 +25,31 @@ resource "netbird_reverse_proxy_service" "homepage" {
   }
 }
 
+resource "netbird_reverse_proxy_service" "headlamp" {
+  name              = "headlamp"
+  domain            = "tiborsuty-headlamp.${data.netbird_reverse_proxy_domain.free.domain}"
+  enabled           = true
+  pass_host_header  = true
+  rewrite_redirects = true
+
+  targets = [{
+    target_id   = data.netbird_network_resource.headlamp.id
+    target_type = "host"
+    port        = 80
+    protocol    = "http"
+    path        = "/"
+    enabled     = true
+  }]
+
+  # Headlamp automatically uses a shared read-only Kubernetes identity, so
+  # this public edge must always require NetBird account authentication.
+  auth = {
+    bearer_auth = {
+      enabled = true
+    }
+  }
+}
+
 resource "netbird_reverse_proxy_service" "coder" {
   name              = "coder"
   domain            = "tiborsuty-coder.${data.netbird_reverse_proxy_domain.free.domain}"

@@ -15,6 +15,9 @@ config:
   enableHelm: false
   staticPlugins:
     enabled: true
+  oidc:
+    secret:
+      create: false
 
 automountServiceAccountToken: true
 
@@ -22,11 +25,11 @@ serviceAccount:
   create: true
   name: headlamp
 
-# The upstream chart defaults to cluster-admin. Bind the pod to the custom
-# aggregated read-only role declared in rbac.yaml instead.
+# The upstream chart defaults to a binding named headlamp-admin with
+# cluster-admin privileges. rbac.yaml creates an explicitly named read-only
+# binding instead.
 clusterRoleBinding:
-  create: true
-  clusterRoleName: headlamp-cluster-view
+  create: false
 
 service:
   type: ClusterIP

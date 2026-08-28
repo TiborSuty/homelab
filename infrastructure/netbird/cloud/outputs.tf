@@ -3,6 +3,11 @@ output "homepage_reverse_proxy_url" {
   value       = "https://${netbird_reverse_proxy_service.homepage.domain}"
 }
 
+output "headlamp_reverse_proxy_url" {
+  description = "Public Headlamp HTTPS entry point protected by NetBird account SSO."
+  value       = "https://${netbird_reverse_proxy_service.headlamp.domain}"
+}
+
 output "coder_reverse_proxy_url" {
   description = "Public Coder HTTPS entry point protected by NetBird account SSO."
   value       = "https://${netbird_reverse_proxy_service.coder.domain}"
