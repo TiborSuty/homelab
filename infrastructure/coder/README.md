@@ -120,7 +120,7 @@ Connect from the Mac and start the terminal editor inside the workspace:
 
 ```sh
 coder ssh backend-dev
-cd ~/project
+cd /workspaces/project
 tmux new -As dev
 nvim .
 ```

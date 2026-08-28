@@ -295,12 +295,6 @@ resource "coder_agent" "main" {
   arch = data.coder_provisioner.current.arch
   os   = "linux"
 
-  startup_script = <<-EOT
-    if [ ! -e "$HOME/project" ]; then
-      ln -s /workspaces/project "$HOME/project"
-    fi
-  EOT
-
   env = {
     GIT_AUTHOR_NAME     = local.git_author_name
     GIT_AUTHOR_EMAIL    = local.git_author_email

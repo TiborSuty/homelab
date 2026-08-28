@@ -17,8 +17,7 @@ Each workspace gets:
 - a stable ClusterIP Service for communication with other workspaces;
 - Coder SSH access for tmux and Neovim.
 
-The repository has a stable path at `/workspaces/project`; the agent also
-creates `~/project` as a convenience symlink.
+The repository has a stable path at `/workspaces/project`.
 
 Neovim and tmux should be installed by the repository's devcontainer image or
 features. This template deliberately does not install a browser IDE.
