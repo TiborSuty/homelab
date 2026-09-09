@@ -15,6 +15,7 @@ Each workspace gets:
 - an ephemeral Deployment in `coder-workspaces`;
 - a persistent Longhorn volume mounted at `/workspaces`;
 - a stable ClusterIP Service for communication with other workspaces;
+- an authenticated subdomain application proxy for the configured port;
 - Coder SSH access for tmux and Neovim.
 
 The repository has a stable path configured by the `workspace_folder`
@@ -40,6 +41,14 @@ port to be reachable from another workspace. A backend workspace named
 ```text
 http://coder-tiborsuty-backend-dev.coder-workspaces.svc.cluster.local:<port>
 ```
+
+Set `application_start_command` to start an application automatically whenever
+the Coder agent starts. The command runs from `workspace_folder` in the
+background, writes application output to `/tmp/coder-application.log`, and does
+not block terminal access. Leave it empty when the application should be
+started manually. The dashboard link remains owner-only and uses a unique Coder
+subdomain, so frontend assets and development-server WebSockets can use paths
+relative to `/`.
 
 Stopping a workspace removes its Deployment but preserves its Service and PVC.
 Deleting a workspace removes those resources and the dedicated StorageClass

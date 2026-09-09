@@ -98,7 +98,7 @@ data "coder_parameter" "dockerfile_path" {
 data "coder_parameter" "service_port" {
   name         = "service_port"
   display_name = "Application port"
-  description  = "Port exposed to the other Coder workspaces through a stable ClusterIP Service."
+  description  = "Port exposed through the Coder dashboard and to other workspaces through a stable ClusterIP Service."
   type         = "number"
   default      = "3000"
   mutable      = true
@@ -108,6 +108,26 @@ data "coder_parameter" "service_port" {
     min = 1
     max = 65535
   }
+}
+
+data "coder_parameter" "application_name" {
+  name         = "application_name"
+  display_name = "Application name"
+  description  = "Name shown for the application in the Coder workspace dashboard."
+  type         = "string"
+  default      = "Application"
+  mutable      = true
+  order        = 8
+}
+
+data "coder_parameter" "application_start_command" {
+  name         = "application_start_command"
+  display_name = "Application start command"
+  description  = "Optional command started automatically from the workspace folder. Leave empty to start the application manually."
+  type         = "string"
+  default      = ""
+  mutable      = true
+  order        = 9
 }
 
 locals {
@@ -338,6 +358,36 @@ resource "coder_agent" "main" {
   }
 }
 
+resource "coder_script" "application" {
+  count = trimspace(data.coder_parameter.application_start_command.value) != "" ? 1 : 0
+
+  agent_id           = coder_agent.main.id
+  display_name       = "Start ${data.coder_parameter.application_name.value}"
+  icon               = "/icon/terminal.svg"
+  log_path           = "/tmp/coder-application-startup.log"
+  run_on_start       = true
+  start_blocks_login = false
+  script = templatefile("${path.module}/scripts/start-application.sh.tftpl", {
+    start_command_base64    = base64encode(data.coder_parameter.application_start_command.value)
+    workspace_folder_base64 = base64encode(data.coder_parameter.workspace_folder.value)
+  })
+}
+
+resource "coder_app" "application" {
+  agent_id     = coder_agent.main.id
+  slug         = "application"
+  display_name = data.coder_parameter.application_name.value
+  url          = "http://127.0.0.1:${data.coder_parameter.service_port.value}"
+  subdomain    = true
+  share        = "owner"
+
+  healthcheck {
+    url       = "http://127.0.0.1:${data.coder_parameter.service_port.value}"
+    interval  = 5
+    threshold = 24
+  }
+}
+
 resource "coder_metadata" "workspace" {
   count       = data.coder_workspace.current.start_count
   resource_id = coder_agent.main.id
@@ -360,6 +410,11 @@ resource "coder_metadata" "workspace" {
   item {
     key   = "internal service"
     value = "http://${local.service_dns}:${data.coder_parameter.service_port.value}"
+  }
+
+  item {
+    key   = "dashboard application"
+    value = data.coder_parameter.application_name.value
   }
 
   item {

@@ -28,6 +28,10 @@ though its backends are private.
 Coder's SSO-protected proxy is intended for browser access. Coder CLI traffic
 uses `http://coder.coder-system.homelab.internal` through the private NetBird
 network resource, and workspace agents use the in-cluster Service directly.
+Coder workspace applications use private hostnames below
+`*.apps.coder.homelab.internal`. Terraform manages a wildcard CNAME pointing to
+the operator-managed Coder Service record; clients must be connected to NetBird
+to resolve and reach these application URLs.
 
 Terraform also owns the `dashboard-access` policy. It restricts direct mesh
 access to the `dashboard-clients` peer group and permits those clients to reach

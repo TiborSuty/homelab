@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+
+set -eu
+
+workspace_folder="$(printf '%s' '${workspace_folder_base64}' | base64 -d)"
+start_command="$(printf '%s' '${start_command_base64}' | base64 -d)"
+runtime_dir="$${TMPDIR:-/tmp}"
+pid_file="$runtime_dir/coder-application.pid"
+log_file="$runtime_dir/coder-application.log"
+
+if [ -s "$pid_file" ]; then
+  application_pid="$(sed -n '1p' "$pid_file")"
+  if kill -0 "$application_pid" 2>/dev/null; then
+    echo "Application is already running with PID $application_pid."
+    exit 0
+  fi
+fi
+
+cd "$workspace_folder"
+nohup sh -lc "$start_command" >"$log_file" 2>&1 </dev/null &
+application_pid=$!
+printf '%s\n' "$application_pid" >"$pid_file"
+
+sleep 1
+if ! kill -0 "$application_pid" 2>/dev/null; then
+  echo "Application exited during startup. Last log lines:" >&2
+  tail -n 50 "$log_file" >&2 || true
+  exit 1
+fi
+
+echo "Application started with PID $application_pid. Logs: $log_file"
