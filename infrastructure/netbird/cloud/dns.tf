@@ -12,3 +12,23 @@ resource "netbird_dns_record" "coder_apps_wildcard" {
   content = "coder.coder-system.homelab.internal"
   ttl     = 300
 }
+
+# Some frontend applications use the first DNS label as their tenant/workspace
+# identifier. Each Coder workspace therefore receives a more-specific wildcard
+# that preserves that label and sends traffic through the private app gateway.
+# Add one entry here for each frontend workspace that needs tenant subdomains.
+locals {
+  coder_tenant_workspace_domains = toset([
+    "frontend-dev.tiborsuty",
+  ])
+}
+
+resource "netbird_dns_record" "coder_tenant_workspace_apps" {
+  for_each = local.coder_tenant_workspace_domains
+
+  zone_id = data.netbird_dns_zone.homelab.id
+  name    = "*.${each.value}.apps.coder.homelab.internal"
+  type    = "CNAME"
+  content = "coder-workspace-apps.coder-system.homelab.internal"
+  ttl     = 300
+}

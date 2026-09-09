@@ -33,6 +33,14 @@ Coder workspace applications use private hostnames below
 the operator-managed Coder Service record; clients must be connected to NetBird
 to resolve and reach these application URLs.
 
+Frontends that use their first DNS label as an application tenant are routed
+through the `coder-workspace-apps` gateway. Terraform manages one more-specific
+wildcard per Coder workspace, for example
+`*.frontend-dev.tiborsuty.apps.coder.homelab.internal`. Add
+`<workspace>.<owner>` to `coder_tenant_workspace_domains` in `dns.tf` for each
+additional frontend workspace. The gateway is a private NetBird resource; it
+does not create a public Cloud reverse-proxy endpoint.
+
 Terraform also owns the `dashboard-access` policy. It restricts direct mesh
 access to the `dashboard-clients` peer group and permits those clients to reach
 resources in `dashboard-services` on only the backend HTTP ports used by the

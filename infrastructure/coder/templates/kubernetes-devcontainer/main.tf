@@ -98,7 +98,7 @@ data "coder_parameter" "dockerfile_path" {
 data "coder_parameter" "service_port" {
   name         = "service_port"
   display_name = "Application port"
-  description  = "Port exposed through the Coder dashboard and to other workspaces through a stable ClusterIP Service."
+  description  = "Port where the application listens inside the workspace. The stable ClusterIP Service exposes it on port 80."
   type         = "number"
   default      = "3000"
   mutable      = true
@@ -315,7 +315,7 @@ resource "kubernetes_service_v1" "workspace" {
 
     port {
       name        = "app"
-      port        = tonumber(data.coder_parameter.service_port.value)
+      port        = 80
       target_port = tostring(data.coder_parameter.service_port.value)
       protocol    = "TCP"
     }
@@ -377,15 +377,9 @@ resource "coder_app" "application" {
   agent_id     = coder_agent.main.id
   slug         = "application"
   display_name = data.coder_parameter.application_name.value
-  url          = "http://127.0.0.1:${data.coder_parameter.service_port.value}"
-  subdomain    = true
-  share        = "owner"
-
-  healthcheck {
-    url       = "http://127.0.0.1:${data.coder_parameter.service_port.value}"
-    interval  = 5
-    threshold = 24
-  }
+  url          = "http://app.${local.workspace_name}.${local.owner_name}.apps.coder.homelab.internal"
+  external     = true
+  open_in      = "tab"
 }
 
 resource "coder_metadata" "workspace" {
@@ -409,7 +403,7 @@ resource "coder_metadata" "workspace" {
 
   item {
     key   = "internal service"
-    value = "http://${local.service_dns}:${data.coder_parameter.service_port.value}"
+    value = "http://${local.service_dns}"
   }
 
   item {
