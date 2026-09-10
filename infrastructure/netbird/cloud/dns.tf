@@ -20,6 +20,7 @@ resource "netbird_dns_record" "coder_apps_wildcard" {
 locals {
   coder_tenant_workspace_domains = toset([
     "frontend-dev.tiborsuty",
+    "frontend-dev-2.tiborsuty",
   ])
 }
 
