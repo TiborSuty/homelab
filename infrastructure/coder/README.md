@@ -20,6 +20,7 @@ into the restricted `coder-system` namespace.
 - Workspace storage: `longhorn-coder-workspaces` with two replicas and Delete
   reclaim semantics
 - Workspace template: `kubernetes-devcontainer`, using Envbuilder `1.3.0`
+- Workspace secrets: interactive `bw` access to the private Vaultwarden service
 - Telemetry: disabled
 
 ## Database credentials

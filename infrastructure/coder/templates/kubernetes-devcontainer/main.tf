@@ -182,6 +182,9 @@ locals {
   storage_class                        = "longhorn-coder-workspaces"
   coder_agent_url                      = "http://coder.coder-system.svc.cluster.local"
   envbuilder_image                     = "ghcr.io/coder/envbuilder:1.3.0"
+  bitwarden_cli_installer_image        = "alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1"
+  vaultwarden_url                      = "https://vaultwarden.vaultwarden.svc.cluster.local"
+  vaultwarden_ca_path                  = "/etc/coder/vaultwarden/ca.crt"
   frontend_dms_environment_enabled     = data.coder_parameter.workspace_profile.value == "frontend-dms"
   frontend_dms_environment_secret_name = "coder-frontend-dms-environment"
   workspace_id                         = lower(data.coder_workspace.current.id)
@@ -217,6 +220,8 @@ locals {
     ENVBUILDER_GIT_URL                    = data.coder_parameter.repo.value
     ENVBUILDER_INIT_SCRIPT                = local.rewritten_agent_init_script
     ENVBUILDER_WORKSPACE_FOLDER           = data.coder_parameter.workspace_folder.value
+    NODE_EXTRA_CA_CERTS                   = local.vaultwarden_ca_path
+    VAULTWARDEN_URL                       = local.vaultwarden_url
   }
 }
 
@@ -282,6 +287,49 @@ resource "kubernetes_deployment_v1" "workspace" {
         automount_service_account_token  = false
         termination_grace_period_seconds = 30
 
+        init_container {
+          name              = "install-bitwarden-cli"
+          image             = local.bitwarden_cli_installer_image
+          image_pull_policy = "IfNotPresent"
+          command = [
+            "/bin/sh",
+            "-ec",
+            file("${path.module}/scripts/install-bitwarden-cli.sh"),
+          ]
+
+          resources {
+            requests = {
+              cpu    = "10m"
+              memory = "32Mi"
+            }
+            limits = {
+              cpu    = "200m"
+              memory = "128Mi"
+            }
+          }
+
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
+
+          volume_mount {
+            name       = "coder-tools"
+            mount_path = "/tools"
+            read_only  = false
+          }
+
+          volume_mount {
+            name       = "bitwarden-cli-tmp"
+            mount_path = "/tmp"
+            read_only  = false
+          }
+        }
+
         container {
           name              = "dev"
           image             = local.envbuilder_image
@@ -312,6 +360,19 @@ resource "kubernetes_deployment_v1" "workspace" {
             read_only  = false
           }
 
+          volume_mount {
+            name       = "coder-tools"
+            mount_path = "/usr/local/bin/bw"
+            sub_path   = "bw"
+            read_only  = true
+          }
+
+          volume_mount {
+            name       = "vaultwarden-ca"
+            mount_path = "/etc/coder/vaultwarden"
+            read_only  = true
+          }
+
           dynamic "volume_mount" {
             for_each = local.frontend_dms_environment_enabled ? [1] : []
 
@@ -328,6 +389,29 @@ resource "kubernetes_deployment_v1" "workspace" {
           persistent_volume_claim {
             claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
             read_only  = false
+          }
+        }
+
+        volume {
+          name = "coder-tools"
+
+          empty_dir {}
+        }
+
+        volume {
+          name = "bitwarden-cli-tmp"
+
+          empty_dir {
+            size_limit = "64Mi"
+          }
+        }
+
+        volume {
+          name = "vaultwarden-ca"
+
+          config_map {
+            name         = "vaultwarden-ca"
+            default_mode = "0444"
           }
         }
 
@@ -404,6 +488,8 @@ resource "coder_agent" "main" {
     GIT_AUTHOR_EMAIL    = local.git_author_email
     GIT_COMMITTER_NAME  = local.git_author_name
     GIT_COMMITTER_EMAIL = local.git_author_email
+    NODE_EXTRA_CA_CERTS = local.vaultwarden_ca_path
+    VAULTWARDEN_URL     = local.vaultwarden_url
   }
 
   metadata {
@@ -444,6 +530,31 @@ resource "coder_script" "application" {
     start_command_base64    = base64encode(data.coder_parameter.application_start_command.value)
     workspace_folder_base64 = base64encode(data.coder_parameter.workspace_folder.value)
   })
+}
+
+resource "coder_script" "vaultwarden_cli" {
+  agent_id           = coder_agent.main.id
+  display_name       = "Configure Bitwarden CLI"
+  icon               = "/icon/lock.svg"
+  log_path           = "/tmp/coder-bitwarden-cli.log"
+  run_on_start       = true
+  start_blocks_login = false
+  script             = <<-EOT
+    #!/bin/sh
+    set -eu
+
+    bw config server "$VAULTWARDEN_URL" >/dev/null
+  EOT
+}
+
+resource "coder_app" "vaultwarden" {
+  agent_id     = coder_agent.main.id
+  slug         = "vaultwarden"
+  display_name = "Vaultwarden"
+  url          = "https://vaultwarden.vaultwarden.homelab.internal"
+  external     = true
+  open_in      = "tab"
+  icon         = "/icon/lock.svg"
 }
 
 resource "coder_app" "application" {

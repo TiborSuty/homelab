@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vaultwarden-ca
+  namespace: coder-workspaces
+  labels:
+    app.kubernetes.io/name: vaultwarden-ca
+    app.kubernetes.io/part-of: coder
+data:
+  ca.crt: |-
+    -----BEGIN CERTIFICATE-----
+    MIIBnDCCAUKgAwIBAgIUMZ3dlvZA3K6dHDbhr8F4IZjnbRswCgYIKoZIzj0EAwIw
+    LDEqMCgGA1UEAxMhVGlib3IgU3V0eSBIb21lbGFiIFZhdWx0d2FyZGVuIENBMB4X
+    DTI2MDkxMDE0MTYxMloXDTM2MDkwNzE0MTYxMlowLDEqMCgGA1UEAxMhVGlib3Ig
+    U3V0eSBIb21lbGFiIFZhdWx0d2FyZGVuIENBMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+    AQcDQgAEW16TkFTnPz4c1ZfXyn36W00Tuf2cvQPz5OOevo6LCOMijIMrWgptOeHw
+    uMS7cHOlX6udFnOCfODm/do7Ko3rzaNCMEAwDgYDVR0PAQH/BAQDAgGGMA8GA1Ud
+    EwEB/wQFMAMBAf8wHQYDVR0OBBYEFHyVnEpTjeGZNJOrZcLKc8ywxqr2MAoGCCqG
+    SM49BAMCA0gAMEUCIQCM1t+NYGTF+RFlX/+dN9LGJ5NrM4NRf1vzokIBtpCt6wIg
+    fsA2RWQLxaGmP95sLYVqL5jF7Csq0Gp3tL6hajEebFo=
+    -----END CERTIFICATE-----

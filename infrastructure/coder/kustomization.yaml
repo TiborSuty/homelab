@@ -14,6 +14,7 @@ configMapGenerator:
 resources:
   - workspace-namespace.yaml
   - workspace-storage-class.yaml
+  - vaultwarden-ca.yaml
   - postgres.yaml
   - network-resource.yaml
   - workspace-app-gateway.yaml

@@ -16,6 +16,7 @@ Each workspace gets:
 - a persistent Longhorn volume mounted at `/workspaces`;
 - a stable ClusterIP Service for communication with other workspaces;
 - an authenticated subdomain application proxy for the configured port;
+- a pinned Bitwarden CLI configured for the private Vaultwarden service;
 - Coder SSH access for tmux and Neovim.
 
 The **Frontend DMS** workspace preset fills the frontend repository, resource,
@@ -38,7 +39,11 @@ Clone and build failures stop the workspace instead of starting an unrelated
 fallback image.
 
 Neovim and tmux should be installed by the repository's devcontainer image or
-features. This template deliberately does not install a browser IDE.
+features. This template deliberately does not install a browser IDE. The
+Bitwarden CLI is installed independently by a checksum-verified init container,
+and the internal Vaultwarden CA is mounted from the `vaultwarden-ca` ConfigMap.
+Users still log in and unlock interactively; no vault credentials or session
+keys are stored in the template.
 
 For private repositories, use the SSH clone URL and register the SSH public key
 shown in the Coder account settings with the Git provider.
