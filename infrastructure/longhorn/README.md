@@ -7,8 +7,11 @@ chart is deployed by Argo CD from `https://charts.longhorn.io` and pinned in
 Each node has one 256 GB SSD shared by Talos and Longhorn. Replica data is kept
 under `/var/lib/longhorn` on the persistent Talos EPHEMERAL partition. Longhorn
 reserves 30 percent of every disk for Talos, etcd, container images, and logs.
-Three Longhorn replicas therefore consume three times the requested volume
-capacity across the cluster.
+Logical volume capacity may be overprovisioned to 150 percent for sparse
+development volumes, while Longhorn still requires 25 percent physical free
+space. Three Longhorn replicas therefore consume three times the requested
+volume capacity across the cluster. Monitor physical usage before creating more
+large volumes.
 
 This layout survives normal reboots and Talos upgrades, but a reset or clean
 reinstallation of every node destroys all replicas. Important data still needs
