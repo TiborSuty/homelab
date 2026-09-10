@@ -61,7 +61,3 @@ data "netbird_network_resource" "minio" {
   network_id = data.netbird_network.homelab_services.id
   id         = var.minio_resource_id
 }
-
-data "netbird_reverse_proxy_domain" "free" {
-  type = "free"
-}

@@ -142,6 +142,20 @@ coder create frontend-dev \
   --parameter 'application_start_command=./node_modules/.bin/nx serve dms --host=0.0.0.0 --port=4300'
 ```
 
+For frontend workspaces, first seed the shared environment Secret without
+printing or storing its contents in Git:
+
+```sh
+./bootstrap/create-coder-frontend-env-secret.sh
+```
+
+The `Frontend DMS` preset then supplies all workspace parameters in the Coder
+dashboard. Open **Templates**, select `kubernetes-devcontainer`, keep the
+default preset, choose an unused name from `frontend-dev-3` through
+`frontend-dev-10`, and create the workspace. The preset installs dependencies
+on the first start, copies `apps/dms/.env` with mode `600`, and starts DMS on
+port `4300`.
+
 Each workspace application is available from its button on the workspace
 dashboard at its own private wildcard hostname. Add
 `<workspace>.<owner>` to `coder_tenant_workspace_domains` in

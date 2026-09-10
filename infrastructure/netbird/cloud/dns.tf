@@ -21,6 +21,14 @@ locals {
   coder_tenant_workspace_domains = toset([
     "frontend-dev.tiborsuty",
     "frontend-dev-2.tiborsuty",
+    "frontend-dev-3.tiborsuty",
+    "frontend-dev-4.tiborsuty",
+    "frontend-dev-5.tiborsuty",
+    "frontend-dev-6.tiborsuty",
+    "frontend-dev-7.tiborsuty",
+    "frontend-dev-8.tiborsuty",
+    "frontend-dev-9.tiborsuty",
+    "frontend-dev-10.tiborsuty",
   ])
 }
 

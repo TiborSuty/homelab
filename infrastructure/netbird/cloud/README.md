@@ -57,6 +57,11 @@ The wrapper reads the existing `netbird/netbird-mgmt-api-key` Secret and passes
 the token to the provider through `NB_PAT`. The token, local Terraform working
 directory, plans, state, and variable files are excluded from Git.
 
+The account's assigned Cloud proxy suffix is pinned as
+`reverse_proxy_domain = "eu1.netbird.services"`. The provider's `free` domain
+lookup only returns unallocated domains and is not suitable after services have
+claimed the account domain.
+
 ## Commands
 
 Install Terraform 1.15 or newer from HashiCorp's official Homebrew tap, then run

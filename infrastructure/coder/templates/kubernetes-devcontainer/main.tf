@@ -130,33 +130,83 @@ data "coder_parameter" "application_start_command" {
   order        = 9
 }
 
+data "coder_parameter" "workspace_profile" {
+  name         = "workspace_profile"
+  display_name = "Workspace profile"
+  description  = "Selects optional homelab integrations for this workspace."
+  type         = "string"
+  default      = "generic"
+  mutable      = false
+  order        = 10
+
+  option {
+    name  = "Generic"
+    value = "generic"
+  }
+
+  option {
+    name  = "Frontend DMS"
+    value = "frontend-dms"
+  }
+}
+
+data "coder_workspace_preset" "frontend_dms" {
+  name        = "Frontend DMS"
+  description = "Frontend monorepo with DMS on port 4300 and automatic first-start setup."
+  icon        = "/icon/code.svg"
+  default     = true
+
+  parameters = {
+    cpu                   = "4"
+    memory                = "8"
+    workspace_volume_size = "50"
+    repo                  = "git@gitlab.eag-group.cloud:teas/frontend-monorepo.git#refs/heads/ts/T20-136929/eag_grid_new_properties"
+    workspace_folder      = "/workspace"
+    dockerfile_path       = "Dockerfile.dev"
+    service_port          = "4300"
+    application_name      = "Frontend"
+    workspace_profile     = "frontend-dms"
+    application_start_command = trimspace(<<-EOT
+      install -m 600 /run/coder-secrets/dms.env apps/dms/.env &&
+      if [ ! -x node_modules/.bin/nx ]; then
+        SKIP_CARAUDIT_POSTINSTALL=true pnpm install --frozen-lockfile;
+      fi &&
+      exec ./node_modules/.bin/nx serve dms --host=0.0.0.0 --port=4300
+    EOT
+    )
+  }
+}
+
 locals {
-  namespace        = "coder-workspaces"
-  storage_class    = "longhorn-coder-workspaces"
-  coder_agent_url  = "http://coder.coder-system.svc.cluster.local"
-  envbuilder_image = "ghcr.io/coder/envbuilder:1.3.0"
-  workspace_id     = lower(data.coder_workspace.current.id)
-  deployment_name  = "coder-${local.workspace_id}"
-  owner_name       = replace(lower(data.coder_workspace_owner.current.name), "/[^a-z0-9-]/", "-")
-  workspace_name   = replace(lower(data.coder_workspace.current.name), "/[^a-z0-9-]/", "-")
-  service_name     = substr("coder-${local.owner_name}-${local.workspace_name}", 0, 63)
-  service_dns      = "${local.service_name}.${local.namespace}.svc.cluster.local"
-  git_author_name  = coalesce(data.coder_workspace_owner.current.full_name, data.coder_workspace_owner.current.name)
-  git_author_email = data.coder_workspace_owner.current.email
+  namespace                            = "coder-workspaces"
+  storage_class                        = "longhorn-coder-workspaces"
+  coder_agent_url                      = "http://coder.coder-system.svc.cluster.local"
+  envbuilder_image                     = "ghcr.io/coder/envbuilder:1.3.0"
+  frontend_dms_environment_enabled     = data.coder_parameter.workspace_profile.value == "frontend-dms"
+  frontend_dms_environment_secret_name = "coder-frontend-dms-environment"
+  workspace_id                         = lower(data.coder_workspace.current.id)
+  deployment_name                      = "coder-${local.workspace_id}"
+  owner_name                           = replace(lower(data.coder_workspace_owner.current.name), "/[^a-z0-9-]/", "-")
+  workspace_name                       = replace(lower(data.coder_workspace.current.name), "/[^a-z0-9-]/", "-")
+  service_name                         = substr("coder-${local.owner_name}-${local.workspace_name}", 0, 63)
+  service_dns                          = "${local.service_name}.${local.namespace}.svc.cluster.local"
+  git_author_name                      = coalesce(data.coder_workspace_owner.current.full_name, data.coder_workspace_owner.current.name)
+  git_author_email                     = data.coder_workspace_owner.current.email
   rewritten_agent_init_script = replace(
     coder_agent.main.init_script,
     data.coder_workspace.current.access_url,
     local.coder_agent_url,
   )
   workspace_labels = {
-    "app.kubernetes.io/name"     = "coder-workspace"
-    "app.kubernetes.io/instance" = local.deployment_name
-    "app.kubernetes.io/part-of"  = "coder"
-    "com.coder.resource"         = "true"
-    "com.coder.workspace.id"     = data.coder_workspace.current.id
-    "com.coder.workspace.name"   = data.coder_workspace.current.name
-    "com.coder.user.id"          = data.coder_workspace_owner.current.id
-    "com.coder.user.username"    = data.coder_workspace_owner.current.name
+    "app.kubernetes.io/name"         = "coder-workspace"
+    "app.kubernetes.io/instance"     = local.deployment_name
+    "app.kubernetes.io/part-of"      = "coder"
+    "com.coder.resource"             = "true"
+    "com.coder.workspace.id"         = data.coder_workspace.current.id
+    "com.coder.workspace.name"       = data.coder_workspace.current.name
+    "com.coder.user.id"              = data.coder_workspace_owner.current.id
+    "com.coder.user.username"        = data.coder_workspace_owner.current.name
+    "coder.homelab.internal/profile" = data.coder_parameter.workspace_profile.value
   }
   envbuilder_env = {
     CODER_AGENT_TOKEN                     = coder_agent.main.token
@@ -261,6 +311,16 @@ resource "kubernetes_deployment_v1" "workspace" {
             mount_path = data.coder_parameter.workspace_folder.value
             read_only  = false
           }
+
+          dynamic "volume_mount" {
+            for_each = local.frontend_dms_environment_enabled ? [1] : []
+
+            content {
+              name       = "frontend-dms-environment"
+              mount_path = "/run/coder-secrets"
+              read_only  = true
+            }
+          }
         }
 
         volume {
@@ -268,6 +328,19 @@ resource "kubernetes_deployment_v1" "workspace" {
           persistent_volume_claim {
             claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
             read_only  = false
+          }
+        }
+
+        dynamic "volume" {
+          for_each = local.frontend_dms_environment_enabled ? [1] : []
+
+          content {
+            name = "frontend-dms-environment"
+
+            secret {
+              secret_name  = local.frontend_dms_environment_secret_name
+              default_mode = "0444"
+            }
           }
         }
 

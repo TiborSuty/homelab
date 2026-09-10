@@ -1,3 +1,14 @@
+variable "reverse_proxy_domain" {
+  description = "NetBird Cloud reverse-proxy domain already assigned to this account."
+  type        = string
+  default     = "eu1.netbird.services"
+
+  validation {
+    condition     = length(var.reverse_proxy_domain) > 0
+    error_message = "reverse_proxy_domain must not be empty."
+  }
+}
+
 variable "homepage_resource_id" {
   description = "NetBird resource ID reported by the Homepage NetworkResource status."
   type        = string

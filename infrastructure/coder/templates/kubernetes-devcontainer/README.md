@@ -18,6 +18,15 @@ Each workspace gets:
 - an authenticated subdomain application proxy for the configured port;
 - Coder SSH access for tmux and Neovim.
 
+The **Frontend DMS** workspace preset fills the frontend repository, resource,
+Dockerfile, application, and startup parameters. It mounts the pre-created
+`coder-workspaces/coder-frontend-dms-environment` Secret at runtime, copies the
+environment file into the persistent workspace with mode `600`, installs
+dependencies when `node_modules/.bin/nx` is absent, and starts DMS on port
+`4300`. Create the Secret with
+`bootstrap/create-coder-frontend-env-secret.sh`; never place the environment
+contents in this template or in a Coder parameter.
+
 The repository has a stable path configured by the `workspace_folder`
 parameter, which defaults to `/workspaces/project`.
 

@@ -1,6 +1,6 @@
 resource "netbird_reverse_proxy_service" "homepage" {
   name              = "homepage"
-  domain            = "tiborsuty-homepage.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-homepage.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -27,7 +27,7 @@ resource "netbird_reverse_proxy_service" "homepage" {
 
 resource "netbird_reverse_proxy_service" "headlamp" {
   name              = "headlamp"
-  domain            = "tiborsuty-headlamp.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-headlamp.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -52,7 +52,7 @@ resource "netbird_reverse_proxy_service" "headlamp" {
 
 resource "netbird_reverse_proxy_service" "coder" {
   name              = "coder"
-  domain            = "tiborsuty-coder.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-coder.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -77,7 +77,7 @@ resource "netbird_reverse_proxy_service" "coder" {
 
 resource "netbird_reverse_proxy_service" "grafana" {
   name              = "grafana"
-  domain            = "tiborsuty-grafana.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-grafana.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -100,7 +100,7 @@ resource "netbird_reverse_proxy_service" "grafana" {
 
 resource "netbird_reverse_proxy_service" "argocd" {
   name              = "argocd"
-  domain            = "tiborsuty-argocd.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-argocd.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -123,7 +123,7 @@ resource "netbird_reverse_proxy_service" "argocd" {
 
 resource "netbird_reverse_proxy_service" "longhorn" {
   name              = "longhorn"
-  domain            = "tiborsuty-longhorn.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-longhorn.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -146,7 +146,7 @@ resource "netbird_reverse_proxy_service" "longhorn" {
 
 resource "netbird_reverse_proxy_service" "hubble" {
   name              = "hubble"
-  domain            = "tiborsuty-hubble.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-hubble.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -169,7 +169,7 @@ resource "netbird_reverse_proxy_service" "hubble" {
 
 resource "netbird_reverse_proxy_service" "prometheus" {
   name              = "prometheus"
-  domain            = "tiborsuty-prometheus.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-prometheus.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -192,7 +192,7 @@ resource "netbird_reverse_proxy_service" "prometheus" {
 
 resource "netbird_reverse_proxy_service" "alertmanager" {
   name              = "alertmanager"
-  domain            = "tiborsuty-alertmanager.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-alertmanager.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
@@ -215,7 +215,7 @@ resource "netbird_reverse_proxy_service" "alertmanager" {
 
 resource "netbird_reverse_proxy_service" "minio" {
   name              = "minio"
-  domain            = "tiborsuty-minio.${data.netbird_reverse_proxy_domain.free.domain}"
+  domain            = "tiborsuty-minio.${var.reverse_proxy_domain}"
   enabled           = true
   pass_host_header  = true
   rewrite_redirects = true
