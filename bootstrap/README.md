@@ -52,6 +52,18 @@ syncs; the plaintext password is neither stored in Git nor sent to Kubernetes:
 See [`applications/adguard-home/README.md`](../applications/adguard-home/README.md)
 for the Cilium upgrade, initialization, and router cutover sequence.
 
+Vaultwarden uses a private cert-manager CA and a NetBird-only HTTPS endpoint.
+After Argo CD reports the application healthy, install/configure the Bitwarden
+CLI and trust that CA in the macOS login keychain with:
+
+```sh
+./bootstrap/configure-vaultwarden-client.sh
+```
+
+The helper does not authenticate to the vault or store a master password. See
+[`applications/vaultwarden/README.md`](../applications/vaultwarden/README.md)
+for first-account registration and backup requirements.
+
 ## Argo CD UI
 
 Keep the UI private and forward it to the local machine when needed:

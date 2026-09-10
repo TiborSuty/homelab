@@ -1,0 +1,74 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: vaultwarden-selfsigned
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: tls
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vaultwarden-root-ca
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: tls
+spec:
+  secretName: vaultwarden-root-ca
+  commonName: Tibor Suty Homelab Vaultwarden CA
+  isCA: true
+  duration: 87600h
+  renewBefore: 8760h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Never
+  usages:
+    - cert sign
+    - crl sign
+    - digital signature
+  issuerRef:
+    name: vaultwarden-selfsigned
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: vaultwarden-ca
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: tls
+spec:
+  ca:
+    secretName: vaultwarden-root-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vaultwarden-tls
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: tls
+spec:
+  secretName: vaultwarden-tls
+  commonName: vaultwarden.vaultwarden.homelab.internal
+  dnsNames:
+    - vaultwarden
+    - vaultwarden.vaultwarden
+    - vaultwarden.vaultwarden.svc
+    - vaultwarden.vaultwarden.svc.cluster.local
+    - vaultwarden.vaultwarden.homelab.internal
+  duration: 8760h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  usages:
+    - server auth
+    - digital signature
+  issuerRef:
+    name: vaultwarden-ca
+    kind: Issuer

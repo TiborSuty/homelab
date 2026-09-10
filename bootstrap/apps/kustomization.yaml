@@ -20,4 +20,5 @@ resources:
   - alloy.yaml
   - homepage.yaml
   - adguard-home.yaml
+  - vaultwarden.yaml
   - netbird-dashboard-resources.yaml

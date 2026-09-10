@@ -43,8 +43,10 @@ does not create a public Cloud reverse-proxy endpoint.
 
 Terraform also owns the `dashboard-access` policy. It restricts direct mesh
 access to the `dashboard-clients` peer group and permits those clients to reach
-resources in `dashboard-services` on only the backend HTTP ports used by the
-managed dashboards (`80`, `3000`, `9001`, `9090`, and `9093`).
+resources in `dashboard-services` on only the backend ports used by the managed
+services (`80`, `443`, `3000`, `9001`, `9090`, and `9093`). Port `443` is used
+by the private Vaultwarden endpoint; Vaultwarden is intentionally not published
+by a Cloud reverse-proxy service.
 
 ## State and credentials
 

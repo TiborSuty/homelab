@@ -1,0 +1,15 @@
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: vaultwarden
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: network-access
+spec:
+  networkRouterRef:
+    name: homelab-services
+    namespace: netbird
+  serviceRef:
+    name: vaultwarden
+  groups:
+    - name: dashboard-services

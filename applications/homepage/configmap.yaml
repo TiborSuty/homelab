@@ -113,6 +113,12 @@ data:
             description: Network-wide DNS filtering
             namespace: adguard-home
             app: adguard-home
+        - Vaultwarden:
+            icon: vaultwarden.png
+            href: https://vaultwarden.vaultwarden.homelab.internal
+            description: Private password and SSH key vault
+            namespace: vaultwarden
+            app: vaultwarden
 
   widgets.yaml: |-
     - kubernetes:

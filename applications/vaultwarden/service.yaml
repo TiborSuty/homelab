@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: password-manager
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vaultwarden
+  ports:
+    - name: https
+      port: 443
+      targetPort: https
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden-headless
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: password-manager
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: vaultwarden
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP

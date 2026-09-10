@@ -1,0 +1,205 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vaultwarden
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: password-manager
+spec:
+  serviceName: vaultwarden-headless
+  replicas: 1
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vaultwarden
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vaultwarden
+        app.kubernetes.io/component: password-manager
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: vaultwarden
+          image: ghcr.io/dani-garcia/vaultwarden:1.37.2@sha256:094b5689ed81549bd293418395c7cf495ae9d960fc2d4928cef2083ef913d912
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DOMAIN
+              value: https://vaultwarden.vaultwarden.homelab.internal
+            - name: DATA_FOLDER
+              value: /data
+            - name: ROCKET_ADDRESS
+              value: 0.0.0.0
+            - name: ROCKET_PORT
+              value: "8080"
+            - name: SIGNUPS_ALLOWED
+              # Temporarily enabled for the first private account registration.
+              value: "true"
+            - name: INVITATIONS_ALLOWED
+              value: "false"
+            - name: PASSWORD_HINTS_ALLOWED
+              value: "false"
+            - name: SHOW_PASSWORD_HINT
+              value: "false"
+            - name: DISABLE_ICON_DOWNLOAD
+              value: "true"
+            - name: ICON_CACHE_TTL
+              value: "0"
+            - name: ORG_CREATION_USERS
+              value: none
+            - name: SENDS_ALLOWED
+              value: "false"
+            - name: WEB_VAULT_ENABLED
+              value: "true"
+            - name: LOG_LEVEL
+              value: info
+            - name: TZ
+              value: Europe/Bratislava
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /alive
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 1
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /alive
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: vaultwarden-tmp
+              mountPath: /tmp
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.29.4-alpine@sha256:a6c4f61f456b85b8fdf7ec7ab28cc3e299440e6fb4a9dea520e5fd8fd440025e
+          imagePullPolicy: IfNotPresent
+          command:
+            - nginx
+          args:
+            - -g
+            - daemon off;
+            - -c
+            - /etc/nginx-custom/nginx.conf
+          ports:
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /alive
+              port: https
+              scheme: HTTPS
+            periodSeconds: 2
+            timeoutSeconds: 1
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /alive
+              port: https
+              scheme: HTTPS
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: https
+              scheme: HTTPS
+            periodSeconds: 30
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx-custom
+              readOnly: true
+            - name: tls
+              mountPath: /etc/nginx/tls
+              readOnly: true
+            - name: nginx-tmp
+              mountPath: /tmp
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: vaultwarden-nginx
+        - name: tls
+          secret:
+            secretName: vaultwarden-tls
+            defaultMode: 0440
+        - name: vaultwarden-tmp
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: nginx-tmp
+          emptyDir:
+            sizeLimit: 128Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: vaultwarden
+          app.kubernetes.io/component: password-manager
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: longhorn
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 2Gi
