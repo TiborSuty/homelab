@@ -14,6 +14,7 @@ resources:
   - headlamp.yaml
   - coder.yaml
   - minio.yaml
+  - registry.yaml
   - metrics-server.yaml
   - monitoring.yaml
   - loki.yaml

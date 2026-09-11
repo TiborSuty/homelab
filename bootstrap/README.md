@@ -64,6 +64,19 @@ The helper does not authenticate to the vault or store a master password. See
 [`applications/vaultwarden/README.md`](../applications/vaultwarden/README.md)
 for first-account registration and backup requirements.
 
+The private Zot container registry requires a local CA and scoped credentials
+before its Argo CD application can start. Generate them without committing
+private material:
+
+```sh
+./bootstrap/create-registry-secrets.sh
+```
+
+Then render and apply the Talos configurations so every node resolves and
+trusts `registry.homelab.internal`. See
+[`infrastructure/registry/README.md`](../infrastructure/registry/README.md) for
+the staged rollout and verification procedure.
+
 ## Argo CD UI
 
 Keep the UI private and forward it to the local machine when needed:

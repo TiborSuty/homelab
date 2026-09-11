@@ -1,0 +1,47 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: registry-ca
+  namespace: registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+  labels:
+    app.kubernetes.io/name: zot
+    app.kubernetes.io/component: tls
+spec:
+  ca:
+    secretName: registry-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: registry-tls
+  namespace: registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "-9"
+  labels:
+    app.kubernetes.io/name: zot
+    app.kubernetes.io/component: tls
+spec:
+  secretName: registry-tls
+  commonName: registry.homelab.internal
+  dnsNames:
+    - registry.homelab.internal
+    - zot
+    - zot.registry
+    - zot.registry.svc
+    - zot.registry.svc.cluster.local
+  ipAddresses:
+    - 192.168.187.211
+  duration: 8760h
+  renewBefore: 720h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  usages:
+    - server auth
+    - digital signature
+  issuerRef:
+    name: registry-ca
+    kind: Issuer
