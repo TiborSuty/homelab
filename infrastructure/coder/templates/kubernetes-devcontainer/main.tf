@@ -167,7 +167,8 @@ data "coder_workspace_preset" "frontend_dms" {
     application_name      = "Frontend"
     workspace_profile     = "frontend-dms"
     application_start_command = trimspace(<<-EOT
-      install -m 600 /run/coder-secrets/dms.env apps/dms/.env &&
+      install -m 600 .coder-secrets/dms.env apps/dms/.env &&
+      rm -f .coder-secrets/dms.env &&
       if [ ! -x node_modules/.bin/nx ]; then
         SKIP_CARAUDIT_POSTINSTALL=true pnpm install --frozen-lockfile;
       fi &&
@@ -184,7 +185,7 @@ locals {
   envbuilder_image                     = "ghcr.io/coder/envbuilder:1.3.0"
   bitwarden_cli_installer_image        = "alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1"
   vaultwarden_url                      = "https://vaultwarden.vaultwarden.svc.cluster.local"
-  vaultwarden_ca_path                  = "/etc/coder/vaultwarden/ca.crt"
+  vaultwarden_ca_path                  = "${data.coder_parameter.workspace_folder.value}/.coder-tools/share/vaultwarden-ca.crt"
   frontend_dms_environment_enabled     = data.coder_parameter.workspace_profile.value == "frontend-dms"
   frontend_dms_environment_secret_name = "coder-frontend-dms-environment"
   workspace_id                         = lower(data.coder_workspace.current.id)
@@ -200,6 +201,21 @@ locals {
     data.coder_workspace.current.access_url,
     local.coder_agent_url,
   )
+  workspace_init_script = <<-EOT
+    #!/usr/bin/env sh
+    set -eu
+
+    export PATH="${data.coder_parameter.workspace_folder.value}/.coder-tools/bin:$PATH"
+
+    if ! command -v perl >/dev/null 2>&1; then
+      echo "GNU Stow requires Perl, but this workspace image does not provide it." >&2
+      exit 1
+    fi
+
+    stow --version >/dev/null
+
+    ${local.rewritten_agent_init_script}
+  EOT
   workspace_labels = {
     "app.kubernetes.io/name"         = "coder-workspace"
     "app.kubernetes.io/instance"     = local.deployment_name
@@ -218,7 +234,7 @@ locals {
     ENVBUILDER_EXIT_ON_BUILD_FAILURE      = "true"
     ENVBUILDER_GIT_SSH_PRIVATE_KEY_BASE64 = base64encode(try(data.coder_workspace_owner.current.ssh_private_key, ""))
     ENVBUILDER_GIT_URL                    = data.coder_parameter.repo.value
-    ENVBUILDER_INIT_SCRIPT                = local.rewritten_agent_init_script
+    ENVBUILDER_INIT_SCRIPT                = local.workspace_init_script
     ENVBUILDER_WORKSPACE_FOLDER           = data.coder_parameter.workspace_folder.value
     NODE_EXTRA_CA_CERTS                   = local.vaultwarden_ca_path
     VAULTWARDEN_URL                       = local.vaultwarden_url
@@ -288,7 +304,7 @@ resource "kubernetes_deployment_v1" "workspace" {
         termination_grace_period_seconds = 30
 
         init_container {
-          name              = "install-bitwarden-cli"
+          name              = "prepare-coder-workspace"
           image             = local.bitwarden_cli_installer_image
           image_pull_policy = "IfNotPresent"
           command = [
@@ -311,15 +327,18 @@ resource "kubernetes_deployment_v1" "workspace" {
           security_context {
             allow_privilege_escalation = false
             read_only_root_filesystem  = true
+            run_as_group               = 0
+            run_as_user                = 0
 
             capabilities {
+              add  = ["DAC_OVERRIDE"]
               drop = ["ALL"]
             }
           }
 
           volume_mount {
-            name       = "coder-tools"
-            mount_path = "/tools"
+            name       = "workspaces"
+            mount_path = "/workspace-volume"
             read_only  = false
           }
 
@@ -327,6 +346,22 @@ resource "kubernetes_deployment_v1" "workspace" {
             name       = "bitwarden-cli-tmp"
             mount_path = "/tmp"
             read_only  = false
+          }
+
+          volume_mount {
+            name       = "vaultwarden-ca"
+            mount_path = "/source/vaultwarden"
+            read_only  = true
+          }
+
+          dynamic "volume_mount" {
+            for_each = local.frontend_dms_environment_enabled ? [1] : []
+
+            content {
+              name       = "frontend-dms-environment"
+              mount_path = "/source/frontend-dms"
+              read_only  = true
+            }
           }
         }
 
@@ -360,28 +395,6 @@ resource "kubernetes_deployment_v1" "workspace" {
             read_only  = false
           }
 
-          volume_mount {
-            name       = "coder-tools"
-            mount_path = "/usr/local/bin/bw"
-            sub_path   = "bw"
-            read_only  = true
-          }
-
-          volume_mount {
-            name       = "vaultwarden-ca"
-            mount_path = "/etc/coder/vaultwarden"
-            read_only  = true
-          }
-
-          dynamic "volume_mount" {
-            for_each = local.frontend_dms_environment_enabled ? [1] : []
-
-            content {
-              name       = "frontend-dms-environment"
-              mount_path = "/run/coder-secrets"
-              read_only  = true
-            }
-          }
         }
 
         volume {
@@ -390,12 +403,6 @@ resource "kubernetes_deployment_v1" "workspace" {
             claim_name = kubernetes_persistent_volume_claim_v1.workspaces.metadata[0].name
             read_only  = false
           }
-        }
-
-        volume {
-          name = "coder-tools"
-
-          empty_dir {}
         }
 
         volume {
@@ -515,6 +522,17 @@ resource "coder_agent" "main" {
     interval     = 60
     timeout      = 1
   }
+}
+
+module "dotfiles" {
+  count   = data.coder_workspace.current.start_count
+  source  = "registry.coder.com/coder/dotfiles/coder"
+  version = "1.4.2"
+
+  agent_id        = coder_agent.main.id
+  dotfiles_uri    = "https://github.com/TiborSuty/dotfiles.git"
+  dotfiles_branch = "master"
+  manual_update   = true
 }
 
 resource "coder_script" "application" {

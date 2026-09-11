@@ -17,13 +17,16 @@ Each workspace gets:
 - a stable ClusterIP Service for communication with other workspaces;
 - an authenticated subdomain application proxy for the configured port;
 - a pinned Bitwarden CLI configured for the private Vaultwarden service;
+- personal Neovim, tmux, Git, Starship, and Vaultwarden CA configuration
+  applied from `TiborSuty/dotfiles` with GNU Stow;
 - Coder SSH access for tmux and Neovim.
 
 The **Frontend DMS** workspace preset fills the frontend repository, resource,
-Dockerfile, application, and startup parameters. It mounts the pre-created
-`coder-workspaces/coder-frontend-dms-environment` Secret at runtime, copies the
-environment file into the persistent workspace with mode `600`, installs
-dependencies when `node_modules/.bin/nx` is absent, and starts DMS on port
+Dockerfile, application, and startup parameters. An init container stages the
+pre-created `coder-workspaces/coder-frontend-dms-environment` Secret in the
+persistent workspace with mode `600`; it is copied into `apps/dms/.env` and the
+staged copy is removed when the application starts. The preset installs
+dependencies when `node_modules/.bin/nx` is absent and starts DMS on port
 `4300`. Create the Secret with
 `bootstrap/create-coder-frontend-env-secret.sh`; never place the environment
 contents in this template or in a Coder parameter.
@@ -39,11 +42,21 @@ Clone and build failures stop the workspace instead of starting an unrelated
 fallback image.
 
 Neovim and tmux should be installed by the repository's devcontainer image or
-features. This template deliberately does not install a browser IDE. The
-Bitwarden CLI is installed independently by a checksum-verified init container,
-and the internal Vaultwarden CA is mounted from the `vaultwarden-ca` ConfigMap.
+features. This template deliberately does not install a browser IDE. A
+checksum-verified init container installs the Bitwarden CLI and GNU Stow, and
+copies the public internal Vaultwarden CA into the persistent workspace before
+Envbuilder starts. The dev container mounts only that workspace volume,
+avoiding unsupported Envbuilder remounts of auxiliary Kubernetes volumes.
 Users still log in and unlock interactively; no vault credentials or session
 keys are stored in the template.
+
+The template stages checksum-pinned GNU Stow 2.4.1 in the persistent workspace
+and adds it to the agent's `PATH`; the devcontainer image only needs the Perl
+runtime used by Stow. The pinned Coder dotfiles module then clones the public
+dotfiles repository and runs its executable `install.sh`. That installer uses
+an explicit allowlist, so macOS-only files and secret-bearing local state are
+not linked into the Linux workspace. The module also adds a **Refresh
+Dotfiles** button to each running workspace.
 
 For private repositories, use the SSH clone URL and register the SSH public key
 shown in the Coder account settings with the Git provider.
