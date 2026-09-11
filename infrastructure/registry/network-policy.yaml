@@ -32,3 +32,23 @@ spec:
         - port: 5000
           protocol: TCP
   egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zot-remote-node
+  namespace: registry
+  labels:
+    app.kubernetes.io/name: zot
+    app.kubernetes.io/component: registry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zot
+  ingress:
+    - fromEntities:
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "5000"
+              protocol: TCP

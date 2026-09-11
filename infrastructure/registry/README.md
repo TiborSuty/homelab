@@ -11,8 +11,8 @@ LoadBalancer address `192.168.187.211`. Talos maps the hostname statically, so
 image pulls do not depend on NetBird or cluster DNS. Zot runs as one restricted
 StatefulSet replica backed by a retained 20 GiB Longhorn volume.
 
-The ingress NetworkPolicy permits Cilium's `world` identity because an L2 lease
-holder may classify a connection that it forwards to another node that way.
+The ingress policies permit Cilium's `world` identity for LAN clients and its
+`remote-node` identity for containerd and cross-node LoadBalancer forwarding.
 The LoadBalancer address is only announced on the LAN, and registry
 authentication still applies to every request. Selected application namespaces
 are allowed separately for direct in-cluster access.
