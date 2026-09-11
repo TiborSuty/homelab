@@ -15,12 +15,10 @@ spec:
     - Egress
   ingress:
     - from:
+        # Cilium classifies external LoadBalancer traffic as world, including
+        # traffic SNATed through a lease holder on another cluster node.
         - ipBlock:
-            cidr: 192.168.187.0/24
-        # Cilium can SNAT traffic forwarded from a LoadBalancer lease holder
-        # to a backend on another node using that node's Cilium host address.
-        - ipBlock:
-            cidr: 10.244.0.0/16
+            cidr: 0.0.0.0/0
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: registry
