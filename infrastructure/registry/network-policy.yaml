@@ -17,6 +17,10 @@ spec:
     - from:
         - ipBlock:
             cidr: 192.168.187.0/24
+        # Cilium can SNAT traffic forwarded from a LoadBalancer lease holder
+        # to a backend on another node using that node's Cilium host address.
+        - ipBlock:
+            cidr: 10.244.0.0/16
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: registry

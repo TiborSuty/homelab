@@ -11,6 +11,11 @@ LoadBalancer address `192.168.187.211`. Talos maps the hostname statically, so
 image pulls do not depend on NetBird or cluster DNS. Zot runs as one restricted
 StatefulSet replica backed by a retained 20 GiB Longhorn volume.
 
+The ingress NetworkPolicy also permits the cluster pod CIDR. Cilium may use a
+node's Cilium host address from that range when an L2 lease holder forwards a
+connection to the Zot backend on another node. Registry authentication still
+applies to every request.
+
 ## Versions and trust
 
 - Zot: `v2.1.21`
