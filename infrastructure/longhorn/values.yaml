@@ -17,7 +17,7 @@ defaultSettings:
   defaultDataPath: /var/lib/longhorn
   defaultReplicaCount: 3
   replicaAutoBalance: best-effort
-  storageOverProvisioningPercentage: 150
+  storageOverProvisioningPercentage: 175
   storageMinimalAvailablePercentage: 25
   storageReservedPercentageForDefaultDisk: 30
   upgradeChecker: false
