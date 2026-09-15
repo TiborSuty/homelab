@@ -17,9 +17,9 @@ configMapGenerator:
     literals:
       - NODE_ENV=production
       - API_PORT=6001
-      - WEB_ORIGIN=https://tiborsuty-loky-planner.eu1.netbird.services
+      - WEB_ORIGIN=http://loky-planner.loky-planner.homelab.internal
       - S3_ENDPOINT=http://minio.minio.svc.cluster.local:9000
-      - S3_PUBLIC_ENDPOINT=https://tiborsuty-loky-planner.eu1.netbird.services
+      - S3_PUBLIC_ENDPOINT=http://loky-planner.loky-planner.homelab.internal
       - S3_REGION=us-east-1
       - S3_BUCKET=loky-media
       - APP_USER_ID=loky-user

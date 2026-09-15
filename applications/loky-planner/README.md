@@ -5,16 +5,22 @@ outbox dispatcher, Redis, and a dedicated PostgreSQL 16/PostGIS database in
 `loky-planner`. Database and Redis volumes use retained Longhorn storage.
 MinIO stores private objects in `loky-media` using bucket-scoped credentials.
 
-Browser URL: `https://tiborsuty-loky-planner.eu1.netbird.services`.
-NetBird account SSO protects this endpoint. The application currently uses one
-configured user (`loky-user`); the publishing provider is still a mock.
+Browser URL: `http://loky-planner.loky-planner.homelab.internal`.
+Connect the device to NetBird; the `dashboard-clients` policy controls access
+to this private route. Homepage links to this address. The application currently
+uses one configured user (`loky-user`); the publishing provider is still a mock.
+
+The optional public address, `https://tiborsuty-loky-planner.eu1.netbird.services`,
+retains NetBird account SSO. Its Cloud authentication service currently returns
+`authentication service unavailable`, so browser access and signed uploads use
+the private address.
 
 Nginx serves the compiled frontend with SPA fallback and forwards GraphQL,
 media file, upload, and queue-dashboard requests to the API. Signed S3 uploads
-use `/loky-media/` on the same HTTPS hostname. Nginx preserves the hostname,
+use `/loky-media/` on the same private hostname. Nginx preserves the hostname,
 bucket path, and query string required by the signature. The bucket remains
 private, and unsigned requests are rejected by MinIO. Keeping uploads on the
-same origin avoids a separate SSO login or cross-origin cookie requirements.
+same origin keeps uploads on the device's authenticated NetBird connection.
 
 ## First deployment
 

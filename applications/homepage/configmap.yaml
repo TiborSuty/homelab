@@ -79,7 +79,7 @@ data:
     - Applications:
         - Loky Planner:
             icon: mdi-map-marker-path
-            href: https://tiborsuty-loky-planner.eu1.netbird.services
+            href: http://loky-planner.loky-planner.homelab.internal
             description: Hike planning, photo library, and post scheduling
             namespace: loky-planner
             podSelector: ""
