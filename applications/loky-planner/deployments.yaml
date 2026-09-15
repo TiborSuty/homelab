@@ -1,0 +1,320 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loky-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: loky-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: loky-api
+        app.kubernetes.io/part-of: loky-planner
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets:
+        - name: registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/server/api.js"]
+          envFrom:
+            - configMapRef:
+                name: loky-config
+            - secretRef:
+                name: loky-runtime
+          ports:
+            - name: http
+              containerPort: 6001
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 2
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loky-worker-media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: loky-worker-media
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: loky-worker-media
+        app.kubernetes.io/part-of: loky-planner
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets:
+        - name: registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker-media
+          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/server/worker-media.js"]
+          envFrom:
+            - configMapRef:
+                name: loky-config
+            - secretRef:
+                name: loky-runtime
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 2
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loky-worker-publishing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: loky-worker-publishing
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: loky-worker-publishing
+        app.kubernetes.io/part-of: loky-planner
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets:
+        - name: registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker-publishing
+          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/server/worker-publishing.js"]
+          envFrom:
+            - configMapRef:
+                name: loky-config
+            - secretRef:
+                name: loky-runtime
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 2
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loky-outbox-dispatcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: loky-outbox-dispatcher
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: loky-outbox-dispatcher
+        app.kubernetes.io/part-of: loky-planner
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets:
+        - name: registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: outbox-dispatcher
+          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/server/outbox-dispatcher.js"]
+          envFrom:
+            - configMapRef:
+                name: loky-config
+            - secretRef:
+                name: loky-runtime
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 2
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loky-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: loky-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: loky-web
+        app.kubernetes.io/part-of: loky-planner
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets:
+        - name: registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: registry.homelab.internal/loky/web:20260915@sha256:0d05b81aac2a9a2c7245d2d5ab0c756c0977aee66b781433bba70dd55ebbb17c
+          imagePullPolicy: IfNotPresent
+          command: ["nginx"]
+          args: ["-g", "daemon off;"]
+          ports:
+            - name: http
+              containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+        - name: nginx
+          configMap:
+            name: loky-nginx

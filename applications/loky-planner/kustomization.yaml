@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: loky-planner
+
+resources:
+  - postgres.yaml
+  - redis.yaml
+  - deployments.yaml
+  - services.yaml
+  - network-policy.yaml
+  - network-resource.yaml
+
+configMapGenerator:
+  - name: loky-config
+    literals:
+      - NODE_ENV=production
+      - API_PORT=6001
+      - WEB_ORIGIN=https://tiborsuty-loky-planner.eu1.netbird.services
+      - S3_ENDPOINT=http://minio.minio.svc.cluster.local:9000
+      - S3_PUBLIC_ENDPOINT=https://tiborsuty-loky-planner.eu1.netbird.services
+      - S3_REGION=us-east-1
+      - S3_BUCKET=loky-media
+      - APP_USER_ID=loky-user
+      - APP_USER_DISPLAY_NAME=Loky User
+  - name: loky-nginx
+    files:
+      - nginx.conf

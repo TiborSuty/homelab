@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: loky-planner
+spec:
+  selector:
+    app.kubernetes.io/name: loky-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loky-api
+spec:
+  selector:
+    app.kubernetes.io/name: loky-api
+  ports:
+    - name: http
+      port: 6001
+      targetPort: http

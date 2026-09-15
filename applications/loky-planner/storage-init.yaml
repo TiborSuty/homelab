@@ -1,0 +1,65 @@
+# Run explicitly after bootstrap/create-loky-planner-secrets.py.
+# This Job stays outside Loky's Kustomization because MinIO owns its namespace.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: loky-planner-storage-init
+  namespace: minio
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: init
+          image: quay.io/minio/mc:latest@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              mc alias set loky http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null
+              mc mb --ignore-existing "loky/$S3_BUCKET"
+              mc anonymous set none "loky/$S3_BUCKET"
+              cat > /tmp/policy.json <<EOF
+              {"Version":"2012-10-17","Statement":[
+                {"Effect":"Allow","Action":["s3:GetBucketLocation","s3:ListBucket","s3:ListBucketMultipartUploads"],"Resource":["arn:aws:s3:::$S3_BUCKET"]},
+                {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload","s3:ListMultipartUploadParts"],"Resource":["arn:aws:s3:::$S3_BUCKET/*"]}
+              ]}
+              EOF
+              mc admin user add loky "$S3_ACCESS_KEY_ID" "$S3_SECRET_ACCESS_KEY" >/dev/null
+              mc admin policy create loky loky-planner /tmp/policy.json
+              mc admin policy attach loky loky-planner --user "$S3_ACCESS_KEY_ID"
+          env:
+            - name: MC_CONFIG_DIR
+              value: /tmp/mc
+          envFrom:
+            - secretRef:
+                name: minio-root-credentials
+            - secretRef:
+                name: loky-planner-storage-credentials
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
