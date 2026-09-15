@@ -53,16 +53,3 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # CloudNativePG's instance manager observes its Cluster through the API.
-    - to:
-        - ipBlock:
-            cidr: 10.96.0.1/32
-      ports:
-        - protocol: TCP
-          port: 443
-    - to:
-        - ipBlock:
-            cidr: 192.168.187.0/24
-      ports:
-        - protocol: TCP
-          port: 6443

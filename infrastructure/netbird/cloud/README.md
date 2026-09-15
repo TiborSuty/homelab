@@ -17,6 +17,7 @@ The managed proxies publish:
 - Prometheus at `https://tiborsuty-prometheus.eu1.netbird.services`;
 - Alertmanager at `https://tiborsuty-alertmanager.eu1.netbird.services`;
 - MinIO at `https://tiborsuty-minio.eu1.netbird.services`.
+- Loky Planner at `https://tiborsuty-loky-planner.eu1.netbird.services`.
 
 All forward HTTP to operator-created network resources and require NetBird
 account SSO. SSO distribution groups are intentionally unset because they must

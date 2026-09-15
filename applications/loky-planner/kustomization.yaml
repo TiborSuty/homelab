@@ -9,6 +9,7 @@ resources:
   - deployments.yaml
   - services.yaml
   - network-policy.yaml
+  - postgres-api-policy.yaml
   - network-resource.yaml
 
 configMapGenerator:
