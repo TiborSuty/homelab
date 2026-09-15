@@ -26,7 +26,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: api
-          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          image: registry.homelab.internal/loky/server:20260915-browser@sha256:fdf348935acfd8960b69f618291905be0bd62e317c7b81f2aadea2c0e2bb4df0
           imagePullPolicy: IfNotPresent
           command: ["node", "dist/server/api.js"]
           envFrom:
@@ -101,7 +101,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: worker-media
-          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          image: registry.homelab.internal/loky/server:20260915-browser@sha256:fdf348935acfd8960b69f618291905be0bd62e317c7b81f2aadea2c0e2bb4df0
           imagePullPolicy: IfNotPresent
           command: ["node", "dist/server/worker-media.js"]
           envFrom:
@@ -157,7 +157,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: worker-publishing
-          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          image: registry.homelab.internal/loky/server:20260915-browser@sha256:fdf348935acfd8960b69f618291905be0bd62e317c7b81f2aadea2c0e2bb4df0
           imagePullPolicy: IfNotPresent
           command: ["node", "dist/server/worker-publishing.js"]
           envFrom:
@@ -213,7 +213,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: outbox-dispatcher
-          image: registry.homelab.internal/loky/server:20260915@sha256:35ab1758f5952ca48484330bf3f9ddf6481232fbd33f5901dfd9b25ebd74d0bc
+          image: registry.homelab.internal/loky/server:20260915-browser@sha256:fdf348935acfd8960b69f618291905be0bd62e317c7b81f2aadea2c0e2bb4df0
           imagePullPolicy: IfNotPresent
           command: ["node", "dist/server/outbox-dispatcher.js"]
           envFrom:
@@ -269,7 +269,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: web
-          image: registry.homelab.internal/loky/web:20260915@sha256:0d05b81aac2a9a2c7245d2d5ab0c756c0977aee66b781433bba70dd55ebbb17c
+          image: registry.homelab.internal/loky/web:20260915-browser@sha256:0d05b81aac2a9a2c7245d2d5ab0c756c0977aee66b781433bba70dd55ebbb17c
           imagePullPolicy: IfNotPresent
           command: ["nginx"]
           args: ["-g", "daemon off;"]
