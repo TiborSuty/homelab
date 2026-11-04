@@ -56,20 +56,34 @@ The build-only flag works around emulation's lack of seccomp BPF support;
 the resulting workspace retains Nix's default syscall filtering and the Pod's
 `RuntimeDefault` seccomp profile. Native builds use the default `true` value.
 
-Preparation checks on 2026-11-04:
+Validation on 2026-11-04:
 
 - ARM64 SSH, UID 1000, root-login rejection, frontend pnpm 12, backend PHP,
   Nix shells, and persistence tests passed.
 - The AMD64 image built successfully. Its pnpm 11.22.0, pnpm 12.3.4 and PHP
-  extension checks passed. OpenSSH's sandbox cannot run under this Mac's
-  AMD64 emulator (`PR_SET_SECCOMP: Invalid argument`), so native AMD64 SSH
-  verification on the cluster remains pending.
-- Kubernetes schema checks passed for eight standard resources. Three custom
+  extension checks passed. Native AMD64 SSH and UID 1000 were verified on both
+  cluster workspaces, frontend root SSH was rejected, and the frontend offline
+  Nix shell passed. Source checkouts and SSH host keys survived Pod replacement.
+- Kubernetes schema checks passed for nine standard resources. Two custom
   resources had no local schema. A server dry-run of the workload manifests
   in the existing baseline-policy `coder-workspaces` namespace was accepted;
   this did not create resources.
 - NetBird Terraform validation passed. The applied plan added three resources,
-  changed none and destroyed none.
+  changed none and destroyed none. Both NetworkResources report Ready. Direct
+  private access remains unverified while the Mac client reports `NeedsLogin`.
+- Both PVCs are healthy with two replicas. The approved Longhorn reservation
+  limit is 200%; frontend remains 50 GiB and backend remains 30 GiB.
+- The fresh frontend installed with pnpm 12.3.4 and `--frozen-lockfile`; its
+  application container starts DMS automatically using the persisted marker.
+  DMS compiled successfully with no type errors. The HTML page (`OMNETIC`)
+  and `main.js` returned HTTP 200 through port-forwarding with the private
+  tenant Host header. Browser sign-in and upstream API access remain unverified.
+- The restored backend is at `33c96f6e7a19a66beb5fb7e79d3723d2539dae2a`.
+  `composer check-platform-reqs --lock` inside the offline backend Nix shell
+  passed every runtime and development requirement, including XSL and rdkafka.
+  Its tracked files are unchanged; `.coder-tools`
+  remains present as copied workspace state. Composer dependencies have not
+  been installed, and the backend service stack remains separate.
 
 The user selected a fresh frontend clone. Initial source: `master` at
 `531053d326485e029ed868bc94eec4bef1340f0b`. Neither Coder frontend checkout's
@@ -88,6 +102,10 @@ separation and switch to UID 1000. Password authentication and root SSH are
 disabled. Kubernetes applies the baseline Pod Security policy with explicitly
 listed capabilities. This is a single-user workspace: its Nix store is writable
 by that user, and Nix build sandboxing is disabled inside the container.
+
+At startup the public-key Secret is copied to a root-owned file under `/etc/ssh`
+so OpenSSH's strict permission checks accept it. Restart the workspace Pods
+after changing authorized keys. Private keys are never copied to the cluster.
 
 Home and SSH host keys persist on the PVC. The Nix store is part of the image
 and writable container layer, so extra packages installed interactively must
@@ -167,7 +185,10 @@ The frontend `application` container waits for
 create that marker as `dev` to start DMS. Its startup script copies the
 namespace-local `frontend-dms-environment` Secret to `apps/dms/.env` with mode
 600, then starts Nx on port 4300. Kubernetes restarts the application process
-and starts it again after Pod replacement. From the frontend checkout:
+and starts it again after Pod replacement. The app has a 16 GiB memory limit
+for compilation, two type-check workers, and HTTP readiness checks. Its Nx
+process database is temporary so stale PIDs cannot block startup after a restart.
+From the frontend checkout:
 
 ```sh
 SKIP_CARAUDIT_POSTINSTALL=true pnpm install --frozen-lockfile
