@@ -27,13 +27,18 @@ spec:
           resources:
             requests:
               cpu: 500m
-              memory: 1Gi
+              memory: 2Gi
             limits:
               cpu: "4"
-              memory: 8Gi
+              memory: 16Gi
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /
               port: 4300
+              httpHeaders:
+                - name: Host
+                  value: app.frontend-dev.nix-workspaces.homelab.internal
+            timeoutSeconds: 5
             periodSeconds: 10
           volumeMounts:
             - name: home
