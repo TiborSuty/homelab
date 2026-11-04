@@ -22,7 +22,12 @@ RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" \
     && printf 'experimental-features = nix-command flakes\nbuild-users-group =\nsandbox = false\nmax-jobs = 2\n' > /etc/nix/nix.conf \
     && chown -R 1000:1000 /nix
 
-ENV PATH=/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin \
+# Keep agent installation in a separate layer while using the same locked Nixpkgs.
+RUN nix --extra-experimental-features 'nix-command flakes' build \
+    --no-update-lock-file --inputs-from /opt/workspace-flake \
+    nixpkgs#opencode --out-link /opt/opencode-tools
+
+ENV PATH=/opt/opencode-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin \
     NIX_REMOTE=local \
     NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt \
     TERM=xterm-256color
@@ -39,7 +44,7 @@ USER 0:0
 COPY sshd_config /etc/ssh/sshd_config
 COPY entrypoint.sh /usr/local/bin/workspace-entrypoint
 RUN chmod 0755 /usr/local/bin/workspace-entrypoint \
-    && printf 'export PATH=/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin\nexport NIX_REMOTE=local\nexport NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt\n' > /etc/profile
+    && printf 'export PATH=/opt/opencode-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin\nexport NIX_REMOTE=local\nexport NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt\n' > /etc/profile
 
 EXPOSE 2222 3000
 ENTRYPOINT ["/usr/local/bin/workspace-entrypoint"]

@@ -6,7 +6,7 @@ case "${WORKSPACE_PROFILE:-default}" in
   default) WORKSPACE_PROFILE=default; project_bin= ;;
   *) echo 'Unknown WORKSPACE_PROFILE' >&2; exit 1 ;;
 esac
-export PATH="${project_bin}/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin"
+export PATH="${project_bin}/opt/opencode-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin"
 printf 'export PATH=%s\nexport NIX_REMOTE=local\nexport NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt\nexport WORKSPACE_PROFILE=%s\n' \
   "$PATH" "$WORKSPACE_PROFILE" > /etc/profile
 

@@ -48,7 +48,7 @@ remote() {
 }
 
 start frontend
-remote 'set -eu; test "$(id -u)" = 1000; test "$(node --version)" = v24.13.0; test "$(pnpm --version)" = 12.3.4; nix --version; git --version; tmux -V; printf persistent > ~/projects/persistence-test; nix develop --offline /opt/workspace-flake#frontend --command node --version'
+remote 'set -eu; test "$(id -u)" = 1000; test "$(node --version)" = v24.13.0; test "$(pnpm --version)" = 12.3.4; opencode --version; nix --version; git --version; tmux -V; printf persistent > ~/projects/persistence-test; nix develop --offline /opt/workspace-flake#frontend --command node --version'
 host_key=$(docker exec "$container" cat /workspace/ssh/ssh_host_ed25519_key.pub)
 if ssh -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
   -o "UserKnownHostsFile=$test_dir/known_hosts" -o StrictHostKeyChecking=yes \
@@ -58,9 +58,9 @@ if ssh -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
 fi
 docker rm -f "$container" >/dev/null
 start frontend-pnpm11
-remote 'set -eu; test "$(pnpm --version)" = 11.22.0; nix develop --offline /opt/workspace-flake#frontend-pnpm11 --command pnpm --version'
+remote 'set -eu; opencode --version; test "$(pnpm --version)" = 11.22.0; nix develop --offline /opt/workspace-flake#frontend-pnpm11 --command pnpm --version'
 docker rm -f "$container" >/dev/null
 start backend
 test "$host_key" = "$(docker exec "$container" cat /workspace/ssh/ssh_host_ed25519_key.pub)"
 remote 'set -eu; test "$(cat ~/projects/persistence-test)" = persistent; php -r '\''if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) exit(1); foreach (["ctype", "fileinfo", "gd", "gnupg", "iconv", "intl", "json", "mbstring", "openssl", "simplexml", "soap", "pdo_pgsql", "xsl", "rdkafka"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "Missing $ext\n"); exit(1); } }'\''; composer --version; nix develop --offline /opt/workspace-flake#backend --command php --version'
-echo 'PASS: frontend/backend tools, non-root SSH, root rejection, Nix shells, persistent files and host key'
+echo 'PASS: OpenCode, frontend/backend tools, non-root SSH, root rejection, Nix shells, persistent files and host key'
