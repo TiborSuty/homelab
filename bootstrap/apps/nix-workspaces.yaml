@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nix-workspaces
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: homelab
+  source:
+    repoURL: https://github.com/TiborSuty/homelab.git
+    targetRevision: main
+    path: infrastructure/nix-workspaces
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nix-workspaces
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

@@ -83,11 +83,18 @@ fi
 : "${REGISTRY_PULL_USERNAME:?REGISTRY_PULL_USERNAME is missing}"
 : "${REGISTRY_PULL_PASSWORD:?REGISTRY_PULL_PASSWORD is missing}"
 
+# Extend existing credentials without rotating any existing registry account.
+if [ -z "${WORKSPACE_REGISTRY_PULL_PASSWORD:-}" ]; then
+  WORKSPACE_REGISTRY_PULL_PASSWORD=$(openssl rand -hex 24)
+  printf 'WORKSPACE_REGISTRY_PULL_PASSWORD=%s\n' "$WORKSPACE_REGISTRY_PULL_PASSWORD" >>"$credentials_path"
+  chmod 600 "$credentials_path"
+fi
+
 temp_dir=$(mktemp -d "${TMPDIR:-/tmp}/zot-auth.XXXXXX")
 auth_file="$temp_dir/htpasswd"
 
 cleanup() {
-  unset REGISTRY_ADMIN_PASSWORD REGISTRY_PUSH_PASSWORD REGISTRY_PULL_PASSWORD
+  unset REGISTRY_ADMIN_PASSWORD REGISTRY_PUSH_PASSWORD REGISTRY_PULL_PASSWORD WORKSPACE_REGISTRY_PULL_PASSWORD
   if [ -f "$auth_file" ]; then
     unlink "$auth_file"
   fi
@@ -105,6 +112,8 @@ printf '%s\n' "$REGISTRY_PUSH_PASSWORD" | \
   htpasswd -niBC 12 "$REGISTRY_PUSH_USERNAME" >>"$auth_file"
 printf '%s\n' "$REGISTRY_PULL_PASSWORD" | \
   htpasswd -niBC 12 "$REGISTRY_PULL_USERNAME" >>"$auth_file"
+printf '%s\n' "$WORKSPACE_REGISTRY_PULL_PASSWORD" | \
+  htpasswd -niBC 12 nix-workspaces-pull >>"$auth_file"
 
 kubectl --kubeconfig "$kubeconfig_path" get namespace "$namespace" \
   >/dev/null 2>&1 || \

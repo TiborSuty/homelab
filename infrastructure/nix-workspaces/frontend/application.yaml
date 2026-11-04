@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev
+spec:
+  template:
+    spec:
+      containers:
+        - name: application
+          image: registry.homelab.internal/dev/nix-workspace@sha256:f4594df163f2e13ba98c4ce396d7cae8785f22359930a02be2562e91480b7992
+          command: [/bin/sh, /run/workspace-startup/start-dms.sh]
+          env:
+            - name: HOME
+              value: /workspace/home
+            - name: PATH
+              value: /opt/frontend-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin
+            - name: NIX_REMOTE
+              value: local
+            - name: NIX_SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-bundle.crt
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          readinessProbe:
+            tcpSocket:
+              port: 4300
+            periodSeconds: 10
+          volumeMounts:
+            - name: home
+              mountPath: /workspace
+            - name: startup
+              mountPath: /run/workspace-startup
+              readOnly: true
+            - name: frontend-environment
+              mountPath: /run/project-environment
+              readOnly: true
+      volumes:
+        - name: startup
+          configMap:
+            name: frontend-startup
+        - name: frontend-environment
+          secret:
+            secretName: frontend-dms-environment
+            defaultMode: 0444

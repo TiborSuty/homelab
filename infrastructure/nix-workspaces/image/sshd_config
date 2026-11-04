@@ -1,0 +1,22 @@
+Port 2222
+ListenAddress 0.0.0.0
+HostKey /workspace/ssh/ssh_host_ed25519_key
+PidFile /run/sshd.pid
+AuthorizedKeysFile /run/keys/authorized_keys
+AllowUsers dev
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+AuthenticationMethods publickey
+PubkeyAuthentication yes
+UsePAM no
+StrictModes yes
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding local
+GatewayPorts no
+PermitTunnel no
+PermitUserEnvironment no
+PrintMotd no
+Subsystem sftp internal-sftp
+LogLevel VERBOSE

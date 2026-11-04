@@ -27,6 +27,15 @@
     },
     "accessControl": {
       "repositories": {
+        "dev/**": {
+          "policies": [
+            {
+              "users": ["nix-workspaces-pull"],
+              "actions": ["read"]
+            }
+          ],
+          "defaultPolicy": []
+        },
         "loky/**": {
           "policies": [
             {
