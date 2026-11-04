@@ -22,11 +22,6 @@ data "netbird_network_resource" "headlamp" {
   id         = var.headlamp_resource_id
 }
 
-data "netbird_network_resource" "coder" {
-  network_id = data.netbird_network.homelab_services.id
-  id         = var.coder_resource_id
-}
-
 data "netbird_network_resource" "grafana" {
   network_id = data.netbird_network.homelab_services.id
   id         = var.grafana_resource_id

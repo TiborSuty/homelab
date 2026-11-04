@@ -12,7 +12,6 @@ resources:
   - cloudnative-pg.yaml
   - longhorn.yaml
   - headlamp.yaml
-  - coder.yaml
   - nix-workspaces.yaml
   - minio.yaml
   - loky-planner.yaml

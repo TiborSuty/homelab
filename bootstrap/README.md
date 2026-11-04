@@ -30,16 +30,9 @@ The local token-less NetBird context can be generated with:
 ./bootstrap/create-netbird-kubeconfig.sh
 ```
 
-Coder frontend workspaces consume their ignored DMS environment file through a
-Secret in `coder-workspaces`. Seed it from the existing `frontend-dev-2`
-workspace without printing its contents:
-
-```sh
-./bootstrap/create-coder-frontend-env-secret.sh
-```
-
-To replace it, pass `--rotate`. A local file can be used during cluster restore
-with `--file /path/to/apps/dms/.env`.
+Nix development workspaces use namespace-local SSH, registry, and DMS
+environment Secrets. Follow the setup steps in
+[`infrastructure/nix-workspaces/README.md`](../infrastructure/nix-workspaces/README.md).
 
 AdGuard Home uses a locally generated bcrypt password hash for its first boot.
 Create the namespace and Secret before the AdGuard Home application first

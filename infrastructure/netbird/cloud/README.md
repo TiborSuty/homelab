@@ -12,7 +12,6 @@ The managed proxies publish:
 - Hubble at `https://tiborsuty-hubble.eu1.netbird.services`;
 - Homepage at `https://tiborsuty-homepage.eu1.netbird.services`;
 - Headlamp at `https://tiborsuty-headlamp.eu1.netbird.services`;
-- Coder at `https://tiborsuty-coder.eu1.netbird.services`;
 - Grafana at `https://tiborsuty-grafana.eu1.netbird.services`;
 - Prometheus at `https://tiborsuty-prometheus.eu1.netbird.services`;
 - Alertmanager at `https://tiborsuty-alertmanager.eu1.netbird.services`;
@@ -26,21 +25,9 @@ Homepage explicitly allowlists its stable public hostname. Do not disable
 authentication: Cloud's shared proxy is a public internet entry point even
 though its backends are private.
 
-Coder's SSO-protected proxy is intended for browser access. Coder CLI traffic
-uses `http://coder.coder-system.homelab.internal` through the private NetBird
-network resource, and workspace agents use the in-cluster Service directly.
-Coder workspace applications use private hostnames below
-`*.apps.coder.homelab.internal`. Terraform manages a wildcard CNAME pointing to
-the operator-managed Coder Service record; clients must be connected to NetBird
-to resolve and reach these application URLs.
-
-Frontends that use their first DNS label as an application tenant are routed
-through the `coder-workspace-apps` gateway. Terraform manages one more-specific
-wildcard per Coder workspace, for example
-`*.frontend-dev.tiborsuty.apps.coder.homelab.internal`. Add
-`<workspace>.<owner>` to `coder_tenant_workspace_domains` in `dns.tf` for each
-additional frontend workspace. The gateway is a private NetBird resource; it
-does not create a public Cloud reverse-proxy endpoint.
+Nix workspaces use private SSH and HTTP access through the `nix-workspaces`
+policy. The frontend tenant wildcard is managed in `nix-workspaces.tf`. See
+[`Nix workspaces`](../../nix-workspaces/README.md) for connection details.
 
 Terraform also owns the `dashboard-access` policy. It restricts direct mesh
 access to the `dashboard-clients` peer group and permits those clients to reach

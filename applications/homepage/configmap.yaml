@@ -83,12 +83,12 @@ data:
             description: Hike planning, photo library, and post scheduling
             namespace: loky-planner
             podSelector: ""
-        - Coder:
-            icon: coder.png
-            href: https://tiborsuty-coder.eu1.netbird.services
-            description: Remote development workspaces
-            namespace: coder-system
-            app: coder
+        - DMS Workspace:
+            icon: mdi-code-braces
+            href: http://app.frontend-dev.nix-workspaces.homelab.internal
+            description: Nix frontend development workspace
+            namespace: nix-workspaces
+            podSelector: app.kubernetes.io/instance=frontend
         - Headlamp:
             icon: headlamp.png
             href: https://tiborsuty-headlamp.eu1.netbird.services

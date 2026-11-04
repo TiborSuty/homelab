@@ -8,11 +8,6 @@ output "headlamp_reverse_proxy_url" {
   value       = "https://${netbird_reverse_proxy_service.headlamp.domain}"
 }
 
-output "coder_reverse_proxy_url" {
-  description = "Public Coder HTTPS entry point protected by NetBird account SSO."
-  value       = "https://${netbird_reverse_proxy_service.coder.domain}"
-}
-
 output "grafana_reverse_proxy_url" {
   description = "Public Grafana HTTPS entry point protected by NetBird account SSO."
   value       = "https://${netbird_reverse_proxy_service.grafana.domain}"
