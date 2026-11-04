@@ -69,15 +69,17 @@ Validation on 2026-11-04:
   in the existing baseline-policy `coder-workspaces` namespace was accepted;
   this did not create resources.
 - NetBird Terraform validation passed. The applied plan added three resources,
-  changed none and destroyed none. Both NetworkResources report Ready. Direct
-  private access remains unverified while the Mac client reports `NeedsLogin`.
+  changed none and destroyed none. Both NetworkResources report Ready. After
+  the Mac signed in, private DNS and SSH to both workspace hostnames passed;
+  both SSH sessions ran as UID 1000 with host keys verified against the cluster.
 - Both PVCs are healthy with two replicas. The approved Longhorn reservation
   limit is 200%; frontend remains 50 GiB and backend remains 30 GiB.
 - The fresh frontend installed with pnpm 12.3.4 and `--frozen-lockfile`; its
   application container starts DMS automatically using the persisted marker.
   DMS compiled successfully with no type errors. The HTML page (`OMNETIC`)
   and `main.js` returned HTTP 200 through port-forwarding with the private
-  tenant Host header. Browser sign-in and upstream API access remain unverified.
+  tenant Host header. The DMS tenant URL also returned HTTP 200 directly over
+  NetBird. Browser sign-in and upstream API access remain unverified.
 - The restored backend is at `33c96f6e7a19a66beb5fb7e79d3723d2539dae2a`.
   `composer check-platform-reqs --lock` inside the offline backend Nix shell
   passed every runtime and development requirement, including XSL and rdkafka.
