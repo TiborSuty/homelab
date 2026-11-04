@@ -16,7 +16,7 @@
       backendFor = pkgs:
         let php = pkgs.php84.buildEnv {
           extensions = { enabled, all }: enabled ++ (with all; [
-            gd gnupg intl soap pdo_pgsql redis zip bcmath sockets
+            gd gnupg intl soap pdo_pgsql redis zip bcmath sockets xsl rdkafka
           ]);
           extraConfig = "memory_limit = -1";
         };

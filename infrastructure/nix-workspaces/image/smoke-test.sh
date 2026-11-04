@@ -62,5 +62,5 @@ remote 'set -eu; test "$(pnpm --version)" = 11.22.0; nix develop --offline /opt/
 docker rm -f "$container" >/dev/null
 start backend
 test "$host_key" = "$(docker exec "$container" cat /workspace/ssh/ssh_host_ed25519_key.pub)"
-remote 'set -eu; test "$(cat ~/projects/persistence-test)" = persistent; php -r '\''if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) exit(1); foreach (["ctype", "fileinfo", "gd", "gnupg", "iconv", "intl", "json", "mbstring", "openssl", "simplexml", "soap", "pdo_pgsql"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "Missing $ext\n"); exit(1); } }'\''; composer --version; nix develop --offline /opt/workspace-flake#backend --command php --version'
+remote 'set -eu; test "$(cat ~/projects/persistence-test)" = persistent; php -r '\''if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 4) exit(1); foreach (["ctype", "fileinfo", "gd", "gnupg", "iconv", "intl", "json", "mbstring", "openssl", "simplexml", "soap", "pdo_pgsql", "xsl", "rdkafka"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "Missing $ext\n"); exit(1); } }'\''; composer --version; nix develop --offline /opt/workspace-flake#backend --command php --version'
 echo 'PASS: frontend/backend tools, non-root SSH, root rejection, Nix shells, persistent files and host key'

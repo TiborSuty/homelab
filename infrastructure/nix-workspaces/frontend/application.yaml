@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: application
-          image: registry.homelab.internal/dev/nix-workspace@sha256:43bae2587b0980e72fd87d82c1c8c265abce8652c8d6086a73eac0f4298de98b
+          image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
           command: [/bin/sh, /run/workspace-startup/start-dms.sh]
           env:
             - name: HOME
@@ -18,6 +18,8 @@ spec:
               value: local
             - name: NIX_SSL_CERT_FILE
               value: /etc/ssl/certs/ca-bundle.crt
+            - name: SERVE_TYPECHECK_CHECKERS
+              value: "2"
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

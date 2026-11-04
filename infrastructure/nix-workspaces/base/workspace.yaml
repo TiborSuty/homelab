@@ -39,7 +39,7 @@ spec:
       containers:
         - name: workspace
           # Verified AMD64 manifest in the private registry.
-          image: registry.homelab.internal/dev/nix-workspace@sha256:43bae2587b0980e72fd87d82c1c8c265abce8652c8d6086a73eac0f4298de98b
+          image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
           imagePullPolicy: IfNotPresent
           ports:
             - name: ssh
