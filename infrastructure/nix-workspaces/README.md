@@ -1,6 +1,6 @@
 # Nix development workspaces on Kubernetes
 
-This is the parallel replacement for Coder's frontend and backend workspaces.
+These are the frontend and backend development workspaces, replacing Coder.
 Argo CD manages the Pods, Longhorn holds project files and home directories,
 and NetBird provides private SSH and HTTP access. Nix pins the development
 tools. No Docker daemon, host mount, privileged container, or Kubernetes API
@@ -9,8 +9,7 @@ token is available inside a workspace.
 The `nix-workspaces` Argo Application is registered in
 `bootstrap/apps/kustomization.yaml` with automatic reconciliation and no
 automatic pruning. Its AMD64 image is published in the private registry and
-pinned by the verified registry manifest digest. Existing Coder resources and
-volumes remain independent and available for rollback.
+pinned by the verified registry manifest digest.
 
 | Workspace | Persistent storage | Tools | Application port |
 | --- | --- | --- | --- |
@@ -91,7 +90,8 @@ The user selected a fresh frontend clone. Initial source: `master` at
 `531053d326485e029ed868bc94eec4bef1340f0b`. Neither Coder frontend checkout's
 local edits are imported. The backend workspace has a full private backup at
 `.local/nix-workspace-migration/backend-workspace.tar.gz` with a SHA-256 record
-alongside it; its original Coder volume remains intact.
+alongside it. The retired workspace volumes are archived separately; see the
+retirement record below.
 
 The smoke test uses a disposable Docker volume and temporary SSH key. It
 checks real SSH authentication, UID 1000, rejection of root SSH, exact frontend
@@ -135,6 +135,12 @@ uses `Retain`; neither setting replaces an off-cluster backup.
 
    These helpers accept `KUBECONFIG`. The pull identity can only read `dev/**`.
    Private SSH keys stay on the client; the cluster receives only public keys.
+   Seed the frontend environment Secret from a protected local file:
+
+   ```sh
+   kubectl -n nix-workspaces create secret generic frontend-dms-environment \
+     --from-file=dms.env=/path/to/apps/dms/.env
+   ```
 4. Plan and apply the NetBird Terraform change. It creates a dedicated group
    and permits approved `dashboard-clients` to access ports 2222 and 80 only
    for that group. It also creates the DMS tenant wildcard record.
@@ -167,15 +173,11 @@ Use the actual host key fingerprint from a trusted `kubectl exec` session
 when accepting the initial SSH connection. SSH host keys live under
 `/workspace/ssh` and survive Pod replacement.
 
-## Migrate each existing workspace
+## Project files and runtime secrets
 
-Inventory each Coder workspace's branch, uncommitted/untracked files, ignored
-environment files, personal configuration, and persistent CLI state first.
-Take an independent backup. Copy into a new directory under `~/projects` on
-the matching Nix workspace; do not rebind, move, or delete the original PVC.
-Compare file inventories and Git status after copying. Reinstall generated
-dependencies with the pinned tools instead of copying platform-specific
-`node_modules` between architectures.
+Keep repositories under `~/projects` and back up uncommitted work, ignored
+environment files, and personal CLI state. Install dependencies with the pinned
+tools rather than copying platform-specific `node_modules` between architectures.
 
 Private repository authentication and app environment files must be provisioned
 at runtime. Keep the existing command-scoped secret workflow; never place
@@ -202,6 +204,18 @@ with `kubectl -n nix-workspaces logs deployment/frontend-dev -c application`.
 For the backend, verify `composer check-platform-reqs` and the required CLI
 commands after restoring its dependency/authentication setup.
 
-Only retire Coder after both workspaces pass those checks and personal tooling
-has been migrated. Removing Coder also requires reviewing its Argo Application,
-PostgreSQL database, Terraform-managed resources and NetBird routes separately.
+## Coder retirement
+
+The user requested complete removal on 2026-11-04. The retired scope includes
+Coder's Argo Application, control plane, gateway, four workspaces, PostgreSQL,
+five volumes, workspace StorageClass, and Coder-specific NetBird routes, DNS,
+and public reverse proxy. The shared CloudNativePG and NetBird operators remain
+in use by other services.
+
+Before deletion, manifests, Secrets, Terraform state, the original template files
+(including local uncommitted changes), and stopped volume contents were saved
+under `.local/coder-removal-20261104-124945/`. Archives include checksums and
+file inventories. Reinstallable `node_modules` and the root `.pnpm-store` cache
+are excluded. Coder's PostgreSQL was already crash-looping; its stopped files are preserved as-is, without a
+successful logical database restore test. These local backups are private and
+are not committed to Git.
