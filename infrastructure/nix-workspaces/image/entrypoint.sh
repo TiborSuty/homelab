@@ -14,6 +14,7 @@ if [ ! -s /run/keys/authorized_keys ]; then
   echo 'Mount a non-empty authorized_keys file at /run/keys/authorized_keys.' >&2
   exit 1
 fi
+install -m 0644 /run/keys/authorized_keys /etc/ssh/workspace_authorized_keys
 
 # Never recursively chown an existing workspace on restart.
 mkdir -p /workspace/home /workspace/home/projects /workspace/ssh /run/sshd

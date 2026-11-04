@@ -39,7 +39,7 @@ spec:
       containers:
         - name: workspace
           # Verified AMD64 manifest in the private registry.
-          image: registry.homelab.internal/dev/nix-workspace@sha256:f4594df163f2e13ba98c4ce396d7cae8785f22359930a02be2562e91480b7992
+          image: registry.homelab.internal/dev/nix-workspace@sha256:43bae2587b0980e72fd87d82c1c8c265abce8652c8d6086a73eac0f4298de98b
           imagePullPolicy: IfNotPresent
           ports:
             - name: ssh
@@ -61,14 +61,12 @@ spec:
               cpu: "4"
               memory: 8Gi
           readinessProbe:
-            tcpSocket:
-              port: ssh
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - 'test -s /run/sshd.pid && kill -0 "$(cat /run/sshd.pid)"'
             periodSeconds: 5
-          livenessProbe:
-            tcpSocket:
-              port: ssh
-            initialDelaySeconds: 30
-            periodSeconds: 20
           volumeMounts:
             - name: home
               mountPath: /workspace

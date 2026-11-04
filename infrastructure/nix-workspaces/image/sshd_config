@@ -2,7 +2,7 @@ Port 2222
 ListenAddress 0.0.0.0
 HostKey /workspace/ssh/ssh_host_ed25519_key
 PidFile /run/sshd.pid
-AuthorizedKeysFile /run/keys/authorized_keys
+AuthorizedKeysFile /etc/ssh/workspace_authorized_keys
 AllowUsers dev
 PermitRootLogin no
 PasswordAuthentication no

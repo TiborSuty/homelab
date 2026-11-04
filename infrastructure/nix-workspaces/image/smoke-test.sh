@@ -14,8 +14,12 @@ cleanup() {
 }
 trap cleanup EXIT
 ssh-keygen -q -t ed25519 -N '' -f "$test_dir/key"
-cp "$test_dir/key.pub" "$test_dir/authorized_keys"
-chmod 0644 "$test_dir/authorized_keys"
+mkdir -p "$test_dir/keys/..data"
+cp "$test_dir/key.pub" "$test_dir/keys/..data/authorized_keys"
+chmod 0644 "$test_dir/keys/..data/authorized_keys"
+ln -s ..data/authorized_keys "$test_dir/keys/authorized_keys"
+# Match Kubernetes Secret mounts, whose parent fails OpenSSH StrictModes.
+chmod 1777 "$test_dir/keys"
 docker volume create "$volume" >/dev/null
 
 start() {
@@ -25,7 +29,7 @@ start() {
     --security-opt no-new-privileges \
     -p 127.0.0.1::2222 -e "WORKSPACE_PROFILE=$1" \
     -v "$volume:/workspace" \
-    -v "$test_dir/authorized_keys:/run/keys/authorized_keys:ro" \
+    -v "$test_dir/keys:/run/keys:ro" \
     "$image" >/dev/null
   port=$(docker port "$container" 2222/tcp | sed 's/.*://')
   for _attempt in $(seq 1 30); do

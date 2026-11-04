@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: application
-          image: registry.homelab.internal/dev/nix-workspace@sha256:f4594df163f2e13ba98c4ce396d7cae8785f22359930a02be2562e91480b7992
+          image: registry.homelab.internal/dev/nix-workspace@sha256:43bae2587b0980e72fd87d82c1c8c265abce8652c8d6086a73eac0f4298de98b
           command: [/bin/sh, /run/workspace-startup/start-dms.sh]
           env:
             - name: HOME
