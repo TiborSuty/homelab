@@ -253,14 +253,36 @@ pointing elsewhere is preserved and causes activation to stop for review.
 The private CLI state lives in `~/.local/share/bitwarden-workspace` on the home
 PVC. No account, vault session, password, or token is bundled into the image.
 
-After logging into the CLI interactively inside `ssh fullstack`, run commands
-from the backend checkout, for example `with_dev_secrets bin/ai-mono project
-dms doctor`. The helper prompts for vault unlocking, fetches only the two
+Log into the CLI once from your own terminal (enter credentials only at the
+interactive prompts):
+
+```sh
+ssh fullstack
+bw login --quiet && bw lock
+cd ~/projects/backend-monorepo
+with_dev_secrets bin/ai-mono project dms doctor
+```
+
+To give OpenCode and its child commands the tokens for a session, start it
+with `with_dev_secrets opencode` from the backend checkout. An already-running
+OpenCode process does not inherit tokens from a later command. The helper
+prompts for vault unlocking, fetches only the two
 existing GitHub/GitLab token items, passes them to the child command, and
 locks the CLI vault afterwards. Phrase lookup remains disabled. Real login
 and token retrieval require the user's credentials; mock tests cover cleanup,
 empty values, failures, and command exit status without accessing a real vault.
 The Mac-to-workspace wrapper above remains an optional alternative.
+
+The direct integration was deployed and verified on 2026-11-05 using workspace
+image `sha256:8c6f975e4b9da4615d1aeed81bf5b1b1737252a7a8e518a92a54ed960c2bd51e`
+and shared dotfiles `78f8f91861bec0b01cb40c04cb2e734bf76ecc66`. Native AMD64
+validation passed the mock secret-flow checks and repeat activation preserved
+CLI state. The live CLI reported unauthenticated, Vaultwarden returned HTTP
+200 with CA verification, and CLI state permissions were 0700/0600. Fullstack
+was 3/3 Ready, Argo Synced/Healthy, and the frontend returned HTTP 200. Docker,
+the 32 GiB workspace limit, volume claims, SSH host key, and existing project
+changes were preserved. Actual vault login and token retrieval remain a user
+step and were not tested with real credentials.
 
 ## Local verification
 
