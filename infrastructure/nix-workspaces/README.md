@@ -220,6 +220,29 @@ worktrees, shell/editor files, and the SSH host key were unchanged. Fullstack
 was 3/3 Ready with zero restarts, the frontend returned HTTP 200, and Argo
 reported Synced/Healthy. Disposable test workloads and credentials were removed.
 
+
+Backend Compose reads `CARVAGO_GITHUB_ACCESS_TOKEN` and
+`CARVAGO_GITLAB_ACCESS_TOKEN` to construct the Composer container's
+`COMPOSER_AUTH`. These variables are intentionally absent from ordinary SSH
+sessions. Run a non-interactive backend command from the Mac using the
+existing Vaultwarden wrapper:
+
+```sh
+cd ~/Documents/github/homelab
+with_dev_secrets python3 infrastructure/nix-workspaces/with-backend-secrets.py \
+  bin/ai-mono project dms doctor
+```
+
+Replace the command after the Python script with the intended backend command;
+it runs from `~/projects/backend-monorepo` in `fullstack`. The Mac wrapper
+prompts locally for vault unlocking and locks it again when the command ends.
+The transport sends only the two required tokens over encrypted SSH stdin;
+it does not write token files, add SSH environment-acceptance rules, or export
+values into interactive shells. It supports non-interactive commands, with
+stdin closed. Compose can retain the resulting `COMPOSER_AUTH` in the Composer
+container configuration, as defined by the backend repository. No real tokens
+are used by `test-with-backend-secrets.py` or the transport's validation.
+
 ## Local verification
 
 ```sh
