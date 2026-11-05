@@ -149,12 +149,14 @@ fast-forwarded to the pinned commit; its modified Neovim lockfile, existing
 Bash files, both project repositories (including local frontend edits), and
 SSH host key were preserved. Startup still never automatically pulls or
 resets that checkout. The Mac nix-darwin build and generated interactive Zsh
-startup passed; applying the Mac generation requires a local sudo password.
+startup passed. The user then activated the matching Mac generation; live
+Zsh checks confirmed the shared prompt, plugins, aliases, and history settings.
 The live frontend became ready and returned HTTP 200 for HTML and JavaScript
 through a Kubernetes port-forward; its bundle rebuilt because existing project
 package/lockfile edits invalidated the cache. The Mac's NetBird session was
-expired during verification, so direct private-hostname access requires
-NetBird reauthentication. Argo reported Synced/Healthy.
+expired during initial verification. After the user reauthenticated, NetBird
+reported Connected and direct `ssh fullstack` succeeded with Zsh 5.9.1 and
+both Node/PHP toolchains. Argo reported Synced/Healthy after the rollout.
 
 ## Local verification
 
