@@ -2,6 +2,8 @@
   description = "Tools shared by persistent Kubernetes development workspaces";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  # Match the Mac's independently pinned Bitwarden CLI package set.
+  inputs.nixpkgs-bitwarden.url = "github:NixOS/nixpkgs/5c9de89ec55bff981cb8da1a4ee92b10f1438ffc";
   inputs.home-manager = {
     url = "github:nix-community/home-manager/24f2190587513b9c2f73db112a17844ae912d965";
     inputs.nixpkgs.follows = "nixpkgs";
@@ -11,12 +13,14 @@
     flake = false;
   };
 
-  outputs = { self, nixpkgs, home-manager, dotfiles }:
+  outputs = { self, nixpkgs, nixpkgs-bitwarden, home-manager, dotfiles }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
       homeFor = pkgs: home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
+        extraSpecialArgs.bitwardenPackage =
+          nixpkgs-bitwarden.legacyPackages.${pkgs.stdenv.hostPlatform.system}.bitwarden-cli;
         modules = [
           (dotfiles + "/nix/home/workspace.nix")
           {

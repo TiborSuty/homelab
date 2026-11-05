@@ -243,6 +243,25 @@ stdin closed. Compose can retain the resulting `COMPOSER_AUTH` in the Composer
 container configuration, as defined by the backend repository. No real tokens
 are used by `test-with-backend-secrets.py` or the transport's validation.
 
+
+The workspace can also connect directly to Vaultwarden. Its Home Manager
+module provides Bitwarden CLI 2026.10.1 from the same independent Nixpkgs pin
+as the Mac, a `bw` wrapper with the public CA certificate, and an executable
+`with_dev_secrets` available from any shell. Fresh activation configures
+`https://vaultwarden.vaultwarden.svc.cluster.local`; an existing CLI state
+pointing elsewhere is preserved and causes activation to stop for review.
+The private CLI state lives in `~/.local/share/bitwarden-workspace` on the home
+PVC. No account, vault session, password, or token is bundled into the image.
+
+After logging into the CLI interactively inside `ssh fullstack`, run commands
+from the backend checkout, for example `with_dev_secrets bin/ai-mono project
+dms doctor`. The helper prompts for vault unlocking, fetches only the two
+existing GitHub/GitLab token items, passes them to the child command, and
+locks the CLI vault afterwards. Phrase lookup remains disabled. Real login
+and token retrieval require the user's credentials; mock tests cover cleanup,
+empty values, failures, and command exit status without accessing a real vault.
+The Mac-to-workspace wrapper above remains an optional alternative.
+
 ## Local verification
 
 ```sh
