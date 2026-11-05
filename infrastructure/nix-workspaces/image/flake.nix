@@ -29,6 +29,8 @@
       toolsFor = pkgs: with pkgs; [
         bashInteractive coreutils curl findutils gnugrep gnused gnutar
         gzip less openssh procps rsync unzip which util-linux
+        # Includes the Compose and Buildx CLI plugins; the engine is external.
+        docker-client
       ] ++ (homeFor pkgs).config.home.packages;
       frontendFor = pkgs: import ./frontend.nix { inherit pkgs; };
       frontendPnpm11For = pkgs: import ./frontend.nix { inherit pkgs; pnpmVersion = "11.22.0"; };

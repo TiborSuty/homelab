@@ -89,6 +89,7 @@ if ssh -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
 fi
 docker rm -f "$container" >/dev/null
 start frontend-pnpm11
+remote 'docker --version; docker compose version; docker buildx version'
 remote 'cat > /tmp/check-nx.sh' < "$(dirname "$0")/check-nx.sh"
 remote 'nx_package=$(dirname "$(dirname "$(readlink -f "$(command -v nx)")")"); bash /tmp/check-nx.sh "$nx_package"'
 remote 'cat > /tmp/check-zsh.zsh' < "$(dirname "$0")/check-zsh.zsh"

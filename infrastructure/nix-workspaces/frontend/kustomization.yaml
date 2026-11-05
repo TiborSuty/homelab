@@ -3,6 +3,7 @@ kind: Kustomization
 namePrefix: frontend-
 resources:
   - ../base
+  - docker-data.yaml
 configMapGenerator:
   - name: frontend-startup
     files:
@@ -31,7 +32,7 @@ patches:
         value: 32Gi
       - op: replace
         path: /spec/template/spec/containers/0/image
-        value: registry.homelab.internal/dev/nix-workspace@sha256:fdf618757be88ad184350354dd511964bf7ca1d58dc8689dd5456e4b64364b06
+        value: registry.homelab.internal/dev/nix-workspace@sha256:74bcc1d9fe3394e2ff337801bc85ba99c413a61b0cc97214a04b73bf5ad80842
   - target:
       kind: Service
       name: dev
@@ -47,3 +48,4 @@ patches:
         path: /spec/serviceRef/name
         value: frontend-dev
   - path: application.yaml
+  - path: docker-engine.yaml

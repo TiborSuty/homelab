@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev
+spec:
+  template:
+    spec:
+      containers:
+        - name: workspace
+          volumeMounts:
+            - name: docker-run
+              mountPath: /var/run
+        - name: docker-engine
+          image: docker.io/library/docker:29-dind@sha256:3d237fe43f2507dab8cc64bf667bca6d509d747eaeecb02f2a18dee350402d5e
+          # Explicit dockerd arguments bypass the image's default TCP listener.
+          args:
+            - dockerd
+            - --host=unix:///var/run/docker.sock
+            - --group=1000
+            - --storage-driver=overlay2
+            - --mtu=1450
+          securityContext:
+            runAsUser: 0
+            privileged: true
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 16Gi
+          readinessProbe:
+            exec:
+              command: [docker, info]
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: docker-run
+              mountPath: /var/run
+            - name: docker-data
+              mountPath: /var/lib/docker
+            # Match the client path so Compose's source bind mounts work.
+            - name: home
+              mountPath: /workspace
+      volumes:
+        - name: docker-run
+          emptyDir: {}
+        - name: docker-data
+          persistentVolumeClaim:
+            claimName: docker-data

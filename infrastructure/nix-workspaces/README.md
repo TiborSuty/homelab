@@ -178,6 +178,38 @@ HTTP 200 for HTML and JavaScript. Argo reported Synced/Healthy. Only the
 frontend workspace image changed; the application and backend workspace
 images and persistent volume claims stayed unchanged.
 
+
+Fullstack Docker uses the Nixpkgs-pinned `docker-client` package, which includes
+`docker compose` and `docker buildx`. The frontend deployment adds a Docker
+29 engine pinned by digest in `frontend/docker-engine.yaml`. It listens only
+on `/var/run/docker.sock`, shared with the workspace and accessible to the
+`dev` user's GID 1000. No Docker TCP API or node runtime socket is exposed.
+The engine mounts the existing home volume at the same `/workspace` path,
+so Compose bind mounts from the project checkout resolve correctly. Use
+paths under `/workspace` for bind mounts; the client's `/tmp` is not shared.
+
+Docker images, named volumes, and container state use the separate 50 GiB
+`frontend-docker-data` Longhorn PVC, retained on GitOps pruning/deletion.
+The engine has a 16 GiB memory limit; the SSH workspace retains its 32 GiB
+limit. Published Docker ports share the Pod's network namespace with SSH and
+the frontend application, so avoid occupied ports such as 2222 and 4300.
+Forward a backend port through SSH when accessing it from the Mac.
+
+Docker-in-Docker needs a privileged engine container. The user explicitly
+approved changing the `nix-workspaces` namespace enforcement from `baseline`
+to `privileged`; restricted audit and warning labels remain. The existing
+workspace, application, and backend container security contexts are unchanged.
+This namespace policy allows privileged workloads and weakens isolation from
+the node; it is an intentional exception for this development environment.
+
+Verify Docker over `ssh fullstack` with `docker version`, `docker compose
+version`, and `docker info`. The optional `image/check-docker.sh` integration
+check runs as UID 1000 against a running engine, creates a disposable Compose
+project under `/workspace`, and checks Buildx, source bind mounts, published
+ports, service DNS, and named-volume persistence before cleaning up.
+Installing Docker does not automatically start the backend stack or initialize
+its databases; use the backend repository's documented development commands.
+
 ## Local verification
 
 ```sh

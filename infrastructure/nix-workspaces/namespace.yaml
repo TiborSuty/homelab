@@ -3,7 +3,9 @@ kind: Namespace
 metadata:
   name: nix-workspaces
   labels:
-    pod-security.kubernetes.io/enforce: baseline
+    # Explicitly approved for the fullstack Docker-in-Docker engine.
+    # Other containers retain their existing security contexts.
+    pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
   annotations:
