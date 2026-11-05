@@ -48,8 +48,12 @@ The image flake imports `nix/home/workspace.nix` from
 [`TiborSuty/dotfiles`](https://github.com/TiborSuty/dotfiles/tree/shared-development-tools/nix/home).
 Its `common.nix` is also imported by the Mac's Home Manager configuration.
 This is the single declaration for Neovim, Git, lazygit, tmux, ripgrep, fd,
-fzf, and Tree-sitter. Mac shell settings, Git identity, and application
-preferences stay in the Mac module. The workspace's project Node/PHP profiles remain separate.
+fzf, and Tree-sitter. It also imports `shell.nix`, sharing Zsh history,
+completion, autosuggestions, syntax highlighting, Oh My Zsh snippets, fzf-tab,
+fzf, zoxide, and the Starship theme. Portable initialization lives in
+`shell-init.zsh`. Homebrew, OrbStack, Mac project paths, NVM, and command-scoped
+secret helpers stay in the Mac module, along with Git identity and app settings.
+The workspace's project Node/PHP profiles remain separate.
 Each platform retains its existing Nixpkgs pin, so versions can differ.
 
 The workspace lockfile pins both the shared dotfiles revision and Home
@@ -59,6 +63,14 @@ At startup, as UID 1000, it clones the bundled repository into `~/dotfiles`
 only if that path does not exist, then activates Home Manager. No startup
 network fetch is required. The persistent `.bashrc` and `.bash_profile` are
 not managed or replaced.
+
+The workspace image uses `/opt/tools/bin/zsh` as the SSH login shell.
+Home Manager manages `.zshenv`/`.zshrc` and the Starship configuration;
+Zsh sources an existing `~/.config/nix-workspace/fullstack.sh` to retain both
+Node and PHP toolchains in interactive sessions and non-interactive SSH
+commands. The image's profile-selected toolchain remains available for an
+empty home. Bash is retained for scripts and `bash -l` fallback. An existing
+unmanaged Zsh configuration causes activation to stop rather than overwrite it.
 
 Neovim's `~/.config/nvim` points to the writable
 `~/dotfiles/.config/nvim` directory, using the same Lua configuration and
@@ -121,6 +133,28 @@ on startup. Argo reports Synced/Healthy and Longhorn volumes are healthy.
 The separate backend workspace and DMS application retain their existing
 image digests. The Mac nix-darwin configuration builds with the shared tools
 but has not been activated.
+
+The shared Zsh rollout on 2026-11-05 uses image digest
+`sha256:a03c1e5f55d668493753efc87b0a9593bb1e35d350c3ace235079460edc20c8b`
+and pins dotfiles revision
+`85b81e28ab77e35d686f2ebd141758125d97beeb`. Native AMD64 validation started
+with the previously deployed image's Home Manager generation and an edited
+persistent home. Migration and repeat activation preserved the Bash files,
+project PATH setup, and Neovim edits. Interactive SSH verified Zsh 5.9.1,
+Starship, zoxide, completion, suggestions, highlighting, aliases, and history;
+non-interactive SSH retained both project toolchains, and offline Nix shells
+passed. Live SSH confirmed the same shell integrations and both project
+toolchains. The existing workspace dotfiles checkout was explicitly
+fast-forwarded to the pinned commit; its modified Neovim lockfile, existing
+Bash files, both project repositories (including local frontend edits), and
+SSH host key were preserved. Startup still never automatically pulls or
+resets that checkout. The Mac nix-darwin build and generated interactive Zsh
+startup passed; applying the Mac generation requires a local sudo password.
+The live frontend became ready and returned HTTP 200 for HTML and JavaScript
+through a Kubernetes port-forward; its bundle rebuilt because existing project
+package/lockfile edits invalidated the cache. The Mac's NetBird session was
+expired during verification, so direct private-hostname access requires
+NetBird reauthentication. Argo reported Synced/Healthy.
 
 ## Local verification
 
