@@ -210,6 +210,16 @@ ports, service DNS, and named-volume persistence before cleaning up.
 Installing Docker does not automatically start the backend stack or initialize
 its databases; use the backend repository's documented development commands.
 
+
+Docker was deployed and verified on 2026-11-05 using workspace image
+`sha256:74bcc1d9fe3394e2ff337801bc85ba99c413a61b0cc97214a04b73bf5ad80842`.
+Direct SSH reported client 29.9.2, engine 29.9.3, and Compose 5.4.0. The live
+integration check passed image builds, source mounts, published ports, service
+DNS, and named-volume persistence across container recreation. Existing project
+worktrees, shell/editor files, and the SSH host key were unchanged. Fullstack
+was 3/3 Ready with zero restarts, the frontend returned HTTP 200, and Argo
+reported Synced/Healthy. Disposable test workloads and credentials were removed.
+
 ## Local verification
 
 ```sh
