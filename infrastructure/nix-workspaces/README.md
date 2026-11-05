@@ -32,13 +32,95 @@ fresh clone of `master`. The optional `frontend-pnpm11` profile supports older
 checkouts pinned to 11.22.0. Both use Node 24.13.0. Select the profile matching
 the repository; do not upgrade its lockfile as part of a move. This environment
 does not yet include Playwright's browser runtime,
-personal dotfiles, Codex, or the Vaultwarden CLI integration.
+Codex or the Vaultwarden CLI integration. The frontend workspace uses the
+shared Home Manager configuration described below; the separate backend
+workspace retains its previous image.
 
 The backend provides an editing and PHP CLI environment. Its team's NGINX
 Unit image, PostgreSQL, Redis, SQS, gateway, and other Compose services have
 not been migrated. A Service on port 8080 does not start a backend web server.
 Validate Composer platform requirements against the chosen branch before
 using this as a replacement for the team's image.
+
+## Shared Mac and workspace tools
+
+The image flake imports `nix/home/workspace.nix` from
+[`TiborSuty/dotfiles`](https://github.com/TiborSuty/dotfiles/tree/shared-development-tools/nix/home).
+Its `common.nix` is also imported by the Mac's Home Manager configuration.
+This is the single declaration for Neovim, Git, lazygit, tmux, ripgrep, fd,
+fzf, and Tree-sitter. Mac shell settings, Git identity, and application
+preferences stay in the Mac module. The workspace's project Node/PHP profiles remain separate.
+Each platform retains its existing Nixpkgs pin, so versions can differ.
+
+The workspace lockfile pins both the shared dotfiles revision and Home
+Manager. The Docker build builds the Home Manager generation at
+`/opt/home-manager` and fetches that exact dotfiles commit into `/opt/dotfiles`.
+At startup, as UID 1000, it clones the bundled repository into `~/dotfiles`
+only if that path does not exist, then activates Home Manager. No startup
+network fetch is required. The persistent `.bashrc` and `.bash_profile` are
+not managed or replaced.
+
+Neovim's `~/.config/nvim` points to the writable
+`~/dotfiles/.config/nvim` directory, using the same Lua configuration and
+`lazy-lock.json` as the Mac's repository. Plugin installation still requires
+network access on first use; run `:Lazy restore` to restore pinned plugins.
+Tree-sitter is also supplied by Nix so LazyVim does not download a Linux
+binary that expects a system loader absent from the workspace image.
+tmux is shared as a package; its Mac-specific configuration and plugin
+submodules are not activated in the workspace.
+
+Startup never resets or pulls an existing dotfiles checkout. Editor edits and
+plugin lockfile changes survive container replacement. To synchronize an
+existing checkout, review `git -C ~/dotfiles status`, commit or preserve local
+changes, then use Git to fetch and merge the intended dotfiles revision.
+Changes are shared through Git, not live filesystem synchronization.
+
+For an existing unmanaged `~/.config/nvim`, Home Manager stops with a conflict
+instead of overwriting it. Compare and back up that configuration before
+moving it aside and restarting. Existing `~/dotfiles` must contain
+`.config/nvim/init.lua`; startup preserves an unexpected directory and fails
+with a diagnostic.
+
+To update the image after publishing shared dotfiles changes:
+
+```sh
+cd infrastructure/nix-workspaces/image
+nix flake update dotfiles
+cd ../../..
+docker build -t homelab-nix-workspace:shared-home-manager infrastructure/nix-workspaces/image
+./infrastructure/nix-workspaces/image/smoke-test.sh homelab-nix-workspace:shared-home-manager
+```
+
+Review the lockfile, build/test the cluster's AMD64 image, publish it, and
+update only the intended workspace-container digest through GitOps. Keep the
+DMS application-container digest unchanged. A new image updates installed
+tools and Home Manager links; existing writable dotfiles are synchronized
+separately as described above.
+
+Validated on 2026-11-04: the ARM64 smoke test passed offline activation,
+unmanaged-config protection, writable Neovim configuration, shared tools over
+SSH, frontend/backend offline Nix shells, and persistence across replacement
+with a different Home Manager generation.
+
+Deployed to `frontend-dev` on 2026-11-05 with shared dotfiles revision
+`5b6ff6c154c890b6164429837f40df8c3d4f6a95` and image digest
+`sha256:f325402ba39092ff5ae54fc452f9dde9a5abffc80db01a32991fff59bcd4bcc9`.
+A disposable native AMD64 pod passed SSH, root-login rejection, offline
+Node/PHP shells, repeat activation preserving editor/shell changes, LazyVim
+startup, and Tree-sitter parser compilation/loading. Tree-sitter comes from
+Nix because the Mason-downloaded Linux executable expected an absent loader.
+The registry uploader used command-scoped `GODEBUG=http2client=0` to avoid
+stalled HTTP/2 blob checks, retaining TLS certificate verification.
+
+The live workspace activated Home Manager successfully. Both repository
+commits and worktree state, persistent shell files, the multi-root workspace
+file, and SSH host key survived replacement unchanged. The frontend Pod
+became ready and its HTML and JavaScript endpoints returned HTTP 200; its
+unchanged application container recovered from one Nx plugin-worker timeout
+on startup. Argo reports Synced/Healthy and Longhorn volumes are healthy.
+The separate backend workspace and DMS application retain their existing
+image digests. The Mac nix-darwin configuration builds with the shared tools
+but has not been activated.
 
 ## Local verification
 
