@@ -1,0 +1,23 @@
+# These names always belong to the homelab, even if EAG supplies a default DNS.
+cluster.local:53 homelab.internal:53 {
+    bind {$POD_IP}
+    errors
+    cache 30
+    forward . 10.96.0.10
+}
+
+.:53 {
+    bind {$POD_IP}
+    errors
+    health :8089
+    ready :8189
+    cache 5
+    # NetBird serves company DNS without changing Kubernetes' resolver files.
+    # Cluster DNS keeps ordinary lookups working before login or after logout.
+    forward . 127.0.0.1:5353 10.96.0.10 {
+        policy sequential
+        failover SERVFAIL REFUSED
+        max_fails 1
+        health_check 2s
+    }
+}

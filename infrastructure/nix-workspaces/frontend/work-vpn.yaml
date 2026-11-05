@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: work-vpn-resolver
+          image: docker.io/netbirdio/netbird:0.82.0@sha256:eca5b274c635bfbb04ec6724a0712d1146190dd450eea199eeb83916fdd94965
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              # A non-loopback DNS address also works in nested Docker containers.
+              printf 'nameserver %s\n' "$POD_IP" > /resolver/resolv.conf
+              sed '/^[[:space:]]*nameserver[[:space:]]/d' /etc/resolv.conf >> /resolver/resolv.conf
+              chmod 0644 /resolver/resolv.conf
+              # Only seed public settings; NetBird generates this peer's keys.
+              # Preserve the enrolled identity on every subsequent restart.
+              chmod 0700 /var/lib/netbird
+              if [ ! -e /var/lib/netbird/default.json ]; then
+                umask 077
+                cp /vpn-config/default.json /var/lib/netbird/default.json
+              fi
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          volumeMounts:
+            - name: work-vpn-resolver
+              mountPath: /resolver
+            - name: work-vpn-data
+              mountPath: /var/lib/netbird
+            - name: work-vpn-config
+              mountPath: /vpn-config
+              readOnly: true
+      containers:
+        - name: workspace
+          volumeMounts:
+            - name: work-vpn-resolver
+              mountPath: /etc/resolv.conf
+              subPath: resolv.conf
+              readOnly: true
+        - name: application
+          volumeMounts:
+            - name: work-vpn-resolver
+              mountPath: /etc/resolv.conf
+              subPath: resolv.conf
+              readOnly: true
+        - name: docker-engine
+          volumeMounts:
+            - name: work-vpn-resolver
+              mountPath: /etc/resolv.conf
+              subPath: resolv.conf
+              readOnly: true
+        - name: work-vpn
+          image: docker.io/netbirdio/netbird:0.82.0@sha256:eca5b274c635bfbb04ec6724a0712d1146190dd450eea199eeb83916fdd94965
+          # Run the daemon without the image entrypoint's interactive `up`.
+          # An unauthenticated VPN must not prevent SSH or the frontend starting.
+          command: [/usr/local/bin/netbird, service, run]
+          env:
+            - {name: NB_MANAGEMENT_URL, value: "https://vpn.eag-group.cloud:33073"}
+            - {name: NB_HOSTNAME, value: "nix-fullstack-eag"}
+            - {name: NB_LOG_FILE, value: console}
+            - {name: NB_DNS_RESOLVER_ADDRESS, value: "127.0.0.1:5353"}
+            - {name: NB_DISABLE_DNS, value: "true"}
+            - {name: NB_DISABLE_SERVER_ROUTES, value: "true"}
+            - {name: NB_BLOCK_INBOUND, value: "true"}
+            - {name: NB_ALLOW_SERVER_SSH, value: "false"}
+            - {name: NB_DISABLE_IPV6, value: "true"}
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [NET_ADMIN, NET_RAW, SYS_RESOURCE]
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: "1", memory: 256Mi}
+          readinessProbe:
+            exec:
+              command: [/usr/local/bin/netbird, status, --check, live]
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: work-vpn-data
+              mountPath: /var/lib/netbird
+        - name: work-vpn-dns
+          image: registry.k8s.io/coredns/coredns:v1.14.6@sha256:900f9c109f7a33545d3c811516e8376df9019147b750f5ce3e254468769176ea
+          args: [-conf, /etc/coredns/Corefile]
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          securityContext:
+            runAsUser: 65532
+            runAsGroup: 65532
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [NET_BIND_SERVICE]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {cpu: 200m, memory: 64Mi}
+          readinessProbe:
+            httpGet: {path: /ready, port: 8189}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: 8089}
+            periodSeconds: 10
+          volumeMounts:
+            - name: work-vpn-config
+              mountPath: /etc/coredns
+              readOnly: true
+      volumes:
+        - name: work-vpn-resolver
+          emptyDir: {}
+        - name: work-vpn-data
+          persistentVolumeClaim:
+            claimName: work-vpn-data
+        - name: work-vpn-config
+          configMap:
+            name: work-vpn-config

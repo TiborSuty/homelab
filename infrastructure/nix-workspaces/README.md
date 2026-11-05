@@ -284,6 +284,49 @@ the 32 GiB workspace limit, volume claims, SSH host key, and existing project
 changes were preserved. Actual vault login and token retrieval remain a user
 step and were not tested with real credentials.
 
+The fullstack Pod also has an independent EAG NetBird client configured for
+`https://vpn.eag-group.cloud:33073`, matching the Mac's saved EAG profile.
+It uses NetBird 0.82.0 pinned by image digest and a dedicated 1 GiB PVC
+(`frontend-work-vpn-data`). Only public initial settings are in Git; the
+client generates its own keys. Existing identity state is never overwritten.
+The Mac's profile and keys are not copied or changed.
+
+From the Mac's homelab checkout, enroll the workspace using company SSO:
+
+```sh
+./infrastructure/nix-workspaces/work-vpn.sh up
+```
+
+Open the printed sign-in URL in the Mac browser. The peer is named
+`nix-fullstack-eag`; company approval or access-policy assignment may be needed.
+Check or disconnect it using the same script with `status` or `down`.
+`networks list` lists assigned networks. The script uses `.local/kubeconfig`
+by default (or the `KUBECONFIG` environment variable).
+
+NetBird shares the Pod network with the workspace and Docker engine. The
+backend's `docker run --network host` database-download command therefore
+uses this VPN network. The client blocks inbound VPN connections, disables
+server routing and NetBird SSH, and has only NET_ADMIN, NET_RAW, and
+SYS_RESOURCE capabilities added. It has no node network, node filesystem,
+Kubernetes credentials, or Docker socket. Kernel WireGuard was checked on a
+native Talos node; no host TUN device mount is needed for this configuration.
+
+A pinned CoreDNS sidecar sends `cluster.local` and `homelab.internal` directly
+to cluster DNS (10.96.0.10). Other queries prefer NetBird's local resolver on
+127.0.0.1:5353, falling back to cluster DNS on transport errors, SERVFAIL or
+REFUSED. Consumers use the Pod IP as their nameserver so nested Docker
+containers can reach it too. NetBird's `--disable-dns` disables system
+resolver rewriting while its DNS server remains available to this proxy.
+DNS availability and daemon readiness do not imply an authenticated VPN.
+
+Native canary validation on 2026-11-05 checked the daemon while logged out,
+0700/0600 state permissions, kernel WireGuard, company-server TLS, Vaultwarden
+HTTPS, and DNS from Docker bridge and host networking. A temporary mock VPN
+DNS server verified company-query routing while Kubernetes names stayed on
+cluster DNS. Actual EAG routes, internal DNS and application reachability
+must be verified after the user completes company SSO. No AWS configuration
+or database download is part of this VPN rollout.
+
 ## Local verification
 
 ```sh

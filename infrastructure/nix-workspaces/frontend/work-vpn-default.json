@@ -1,0 +1,9 @@
+{
+  "ManagementURL": {"Scheme": "https", "Host": "vpn.eag-group.cloud:33073"},
+  "CustomDNSAddress": "127.0.0.1:5353",
+  "DisableDNS": true,
+  "DisableServerRoutes": true,
+  "BlockInbound": true,
+  "DisableIPv6": true,
+  "ServerSSHAllowed": false
+}

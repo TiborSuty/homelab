@@ -4,7 +4,12 @@ namePrefix: frontend-
 resources:
   - ../base
   - docker-data.yaml
+  - work-vpn-data.yaml
 configMapGenerator:
+  - name: work-vpn-config
+    files:
+      - Corefile=work-vpn.Corefile
+      - default.json=work-vpn-default.json
   - name: frontend-startup
     files:
       - start-dms.sh
@@ -49,3 +54,4 @@ patches:
         value: frontend-dev
   - path: application.yaml
   - path: docker-engine.yaml
+  - path: work-vpn.yaml
