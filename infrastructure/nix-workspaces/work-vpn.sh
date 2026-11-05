@@ -12,9 +12,7 @@ case "$action" in
     exec kubectl --kubeconfig "$kubeconfig" -n nix-workspaces exec -it \
       deployment/frontend-dev -c work-vpn -- netbird up \
       --management-url https://vpn.eag-group.cloud:33073 \
-      --hostname nix-fullstack-eag --no-browser \
-      --block-inbound --disable-server-routes --disable-ipv6 \
-      --disable-dns --dns-resolver-address 127.0.0.1:5353 "$@"
+      --hostname nix-fullstack-eag --no-browser "$@"
     ;;
   status|down|networks)
     exec kubectl --kubeconfig "$kubeconfig" -n nix-workspaces exec \

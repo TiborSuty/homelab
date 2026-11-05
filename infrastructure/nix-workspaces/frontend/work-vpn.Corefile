@@ -12,9 +12,10 @@ cluster.local:53 homelab.internal:53 {
     health :8089
     ready :8189
     cache 5
-    # NetBird serves company DNS without changing Kubernetes' resolver files.
+    # Default NetBird DNS on this enrolled peer's persistent VPN address.
+    # Recheck this address if the peer is deleted/re-enrolled or renumbered.
     # Cluster DNS keeps ordinary lookups working before login or after logout.
-    forward . 127.0.0.1:5353 10.96.0.10 {
+    forward . 100.72.38.175 10.96.0.10 {
         policy sequential
         failover SERVFAIL REFUSED
         max_fails 1

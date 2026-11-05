@@ -305,19 +305,21 @@ by default (or the `KUBECONFIG` environment variable).
 
 NetBird shares the Pod network with the workspace and Docker engine. The
 backend's `docker run --network host` database-download command therefore
-uses this VPN network. The client blocks inbound VPN connections, disables
-server routing and NetBird SSH, and has only NET_ADMIN, NET_RAW, and
-SYS_RESOURCE capabilities added. It has no node network, node filesystem,
-Kubernetes credentials, or Docker socket. Kernel WireGuard was checked on a
-native Talos node; no host TUN device mount is needed for this configuration.
+uses this VPN network. Following the company's EAG VPN instructions, only the
+management URL is seeded as an advanced setting; routing, inbound connections,
+IPv6 and DNS use NetBird defaults. The container has NET_ADMIN, NET_RAW,
+NET_BIND_SERVICE and SYS_RESOURCE capabilities, with no node network, node
+filesystem, Kubernetes credentials or Docker socket. Kernel WireGuard was
+checked on a native Talos node; no host TUN device mount is needed here.
 
 A pinned CoreDNS sidecar sends `cluster.local` and `homelab.internal` directly
-to cluster DNS (10.96.0.10). Other queries prefer NetBird's local resolver on
-127.0.0.1:5353, falling back to cluster DNS on transport errors, SERVFAIL or
-REFUSED. Consumers use the Pod IP as their nameserver so nested Docker
-containers can reach it too. NetBird's `--disable-dns` disables system
-resolver rewriting while its DNS server remains available to this proxy.
-DNS availability and daemon readiness do not imply an authenticated VPN.
+to cluster DNS (10.96.0.10). Other queries prefer NetBird's default resolver
+on this enrolled peer's persistent VPN IP, 100.72.38.175:53, falling back to
+cluster DNS on transport errors, SERVFAIL or REFUSED. Recheck that upstream
+address if the peer is deleted/re-enrolled or renumbered. Consumers use the
+Pod IP as their nameserver so nested Docker containers can reach it too.
+NetBird manages only its own container's resolver file using its defaults.
+DNS availability and daemon readiness do not imply company resource access.
 
 Native canary validation on 2026-11-05 checked the daemon while logged out,
 0700/0600 state permissions, kernel WireGuard, company-server TLS, Vaultwarden
@@ -332,7 +334,14 @@ Ready with zero restarts, Argo Synced/Healthy, SSH reachable, and frontend
 HTTP 200. Workspace/Docker DNS and Vaultwarden HTTPS passed. Existing project
 files, SSH host key, image versions, resource limits and data-volume claims
 were preserved; all Longhorn volumes were healthy. The VPN reported
-`NeedsLogin`; actual company connectivity is pending interactive enrollment.
+`NeedsLogin` at that pre-login check. Enrollment subsequently succeeded, but
+the server distributed zero peers, networks and DNS servers. The user then
+provided the EAG VPN guide, which requires default advanced settings apart
+from the management URL. The earlier client overrides were removed and a
+one-time init migration clears those settings without changing enrollment
+keys. Normal startup does not replace the saved identity. File logging is
+also enabled so `netbird debug bundle -A` can include daemon logs, as requested
+by the company guide. Do not upload a bundle automatically.
 
 ## Local verification
 

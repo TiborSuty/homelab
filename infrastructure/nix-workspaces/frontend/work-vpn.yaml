@@ -22,6 +22,19 @@ spec:
                 umask 077
                 cp /vpn-config/default.json /var/lib/netbird/default.json
               fi
+              # One-time migration from our earlier overrides to EAG's defaults.
+              # Change only these settings; preserve all enrollment keys/state.
+              if [ ! -e /var/lib/netbird/.eag-defaults-v1 ]; then
+                sed -i \
+                  -e 's/"CustomDNSAddress": "127.0.0.1:5353"/"CustomDNSAddress": ""/' \
+                  -e 's/"DisableDNS": true/"DisableDNS": false/' \
+                  -e 's/"DisableServerRoutes": true/"DisableServerRoutes": false/' \
+                  -e 's/"BlockInbound": true/"BlockInbound": false/' \
+                  -e 's/"DisableIPv6": true/"DisableIPv6": false/' \
+                  /var/lib/netbird/default.json
+                umask 077
+                touch /var/lib/netbird/.eag-defaults-v1
+              fi
           env:
             - name: POD_IP
               valueFrom:
@@ -70,19 +83,13 @@ spec:
           env:
             - {name: NB_MANAGEMENT_URL, value: "https://vpn.eag-group.cloud:33073"}
             - {name: NB_HOSTNAME, value: "nix-fullstack-eag"}
-            - {name: NB_LOG_FILE, value: console}
-            - {name: NB_DNS_RESOLVER_ADDRESS, value: "127.0.0.1:5353"}
-            - {name: NB_DISABLE_DNS, value: "true"}
-            - {name: NB_DISABLE_SERVER_ROUTES, value: "true"}
-            - {name: NB_BLOCK_INBOUND, value: "true"}
-            - {name: NB_ALLOW_SERVER_SSH, value: "false"}
-            - {name: NB_DISABLE_IPV6, value: "true"}
+            - {name: NB_LOG_FILE, value: "console,/var/log/netbird/client.log"}
           securityContext:
             runAsUser: 0
             allowPrivilegeEscalation: false
             capabilities:
               drop: [ALL]
-              add: [NET_ADMIN, NET_RAW, SYS_RESOURCE]
+              add: [NET_ADMIN, NET_RAW, NET_BIND_SERVICE, SYS_RESOURCE]
           resources:
             requests: {cpu: 50m, memory: 64Mi}
             limits: {cpu: "1", memory: 256Mi}
