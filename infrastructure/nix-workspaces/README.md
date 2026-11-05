@@ -162,6 +162,22 @@ expired during initial verification. After the user reauthenticated, NetBird
 reported Connected and direct `ssh fullstack` succeeded with Zsh 5.9.1 and
 both Node/PHP toolchains. Argo reported Synced/Healthy after the rollout.
 
+
+Global Nx was deployed on 2026-11-05 with dotfiles revision
+`5ee4ab8e66408f4660b36f262e16be94f64aa22c` and workspace image
+`sha256:fdf618757be88ad184350354dd511964bf7ca1d58dc8689dd5456e4b64364b06`.
+Nx 23.2.1 passed native binding loading and task execution on both Apple
+Silicon macOS and a disposable native AMD64 pod. The Mac generation was
+activated and its old npm-global Nx removed after backup, so `nx` resolves
+to Home Manager. Direct `ssh fullstack` verified global Nx and delegation to
+the frontend repository's local Nx 23.2.1; Node/PHP toolchains were retained.
+The workspace dotfiles checkout was fast-forwarded explicitly. Existing
+project edits, Neovim lockfile, shell files, and SSH host key were preserved.
+The application recovered from one plugin-worker startup timeout and returned
+HTTP 200 for HTML and JavaScript. Argo reported Synced/Healthy. Only the
+frontend workspace image changed; the application and backend workspace
+images and persistent volume claims stayed unchanged.
+
 ## Local verification
 
 ```sh
