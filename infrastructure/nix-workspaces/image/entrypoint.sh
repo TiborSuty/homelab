@@ -20,6 +20,13 @@ install -m 0644 /run/keys/authorized_keys /etc/ssh/workspace_authorized_keys
 mkdir -p /workspace/home /workspace/home/projects /workspace/ssh /run/sshd
 chown 1000:1000 /workspace/home /workspace/home/projects
 chmod 0700 /workspace/home /workspace/ssh
+
+# Activate the baked Home Manager generation as the workspace user. This
+# preserves the persistent shell setup and never executes user code as root.
+setpriv --reuid=1000 --regid=1000 --clear-groups \
+  env HOME=/workspace/home USER=dev LOGNAME=dev \
+  /opt/tools/bin/bash /usr/local/bin/workspace-activate-home
+
 if [ ! -f /workspace/ssh/ssh_host_ed25519_key ]; then
   ssh-keygen -q -t ed25519 -N '' -f /workspace/ssh/ssh_host_ed25519_key
 fi

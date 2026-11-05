@@ -2,15 +2,34 @@
   description = "Tools shared by persistent Kubernetes development workspaces";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  inputs.home-manager = {
+    url = "github:nix-community/home-manager/24f2190587513b9c2f73db112a17844ae912d965";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+  inputs.dotfiles = {
+    url = "github:TiborSuty/dotfiles/shared-development-tools";
+    flake = false;
+  };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, home-manager, dotfiles }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
+      homeFor = pkgs: home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
+        modules = [
+          (dotfiles + "/nix/home/workspace.nix")
+          {
+            # The workspace is a CLI container, without a GPU or user systemd.
+            targets.genericLinux.gpu.enable = false;
+            systemd.user.enable = false;
+          }
+        ];
+      };
       toolsFor = pkgs: with pkgs; [
-        bashInteractive coreutils curl findutils git gnugrep gnused gnutar
-        gzip less neovim openssh procps ripgrep rsync tmux unzip which
-      ];
+        bashInteractive coreutils curl findutils gnugrep gnused gnutar
+        gzip less openssh procps rsync unzip which util-linux
+      ] ++ (homeFor pkgs).config.home.packages;
       frontendFor = pkgs: import ./frontend.nix { inherit pkgs; };
       frontendPnpm11For = pkgs: import ./frontend.nix { inherit pkgs; pnpmVersion = "11.22.0"; };
       backendFor = pkgs:
@@ -22,9 +41,14 @@
         };
         in [ php (pkgs.php84.packages.composer.override { inherit php; }) ];
     in {
+      # Used by the image build to bundle a matching, offline Git checkout.
+      dotfilesRevision = dotfiles.rev;
+      homeConfigurations = forAllSystems (system:
+        homeFor (import nixpkgs { inherit system; }));
       packages = forAllSystems (system:
         let pkgs = import nixpkgs { inherit system; };
         in {
+          home = (homeFor pkgs).activationPackage;
           default = pkgs.buildEnv {
             name = "workspace-tools";
             paths = toolsFor pkgs;

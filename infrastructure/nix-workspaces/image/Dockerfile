@@ -12,6 +12,15 @@ RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" \
       --no-update-lock-file /opt/workspace-flake#frontend-pnpm11 --out-link /opt/frontend-pnpm11-tools \
     && nix --extra-experimental-features 'nix-command flakes' build \
       --no-update-lock-file /opt/workspace-flake#backend --out-link /opt/backend-tools \
+    && nix --extra-experimental-features 'nix-command flakes' build \
+      --no-update-lock-file /opt/workspace-flake#home --out-link /opt/home-manager \
+    && dotfiles_revision=$(nix --extra-experimental-features 'nix-command flakes' eval \
+      --raw --no-update-lock-file /opt/workspace-flake#dotfilesRevision) \
+    && /opt/tools/bin/git init /opt/dotfiles \
+    && /opt/tools/bin/git -C /opt/dotfiles remote add origin https://github.com/TiborSuty/dotfiles.git \
+    && /opt/tools/bin/git -C /opt/dotfiles fetch --depth=1 origin "$dotfiles_revision" \
+    && /opt/tools/bin/git -C /opt/dotfiles checkout -b shared-development-tools FETCH_HEAD \
+    && test "$(/opt/tools/bin/git -C /opt/dotfiles rev-parse HEAD)" = "$dotfiles_revision" \
     && printf '\ndev:x:1000:1000:Developer:/workspace/home:/opt/tools/bin/bash\n' >> /etc/passwd \
     && printf '\ndev:x:1000:\n' >> /etc/group \
     && printf '\ndev:*:1:0:99999:7:::\n' >> /etc/shadow \
@@ -19,6 +28,7 @@ RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" \
     && printf '\nsshd:x:998:\n' >> /etc/group \
     && mkdir -p /var/empty /run/sshd /workspace /etc/ssh \
     && chmod 0755 /var/empty /run/sshd \
+    && chown -R 1000:1000 /opt/dotfiles \
     && printf 'experimental-features = nix-command flakes\nbuild-users-group =\nsandbox = false\nmax-jobs = 2\n' > /etc/nix/nix.conf \
     && chown -R 1000:1000 /nix
 
@@ -43,7 +53,8 @@ USER 0:0
 
 COPY sshd_config /etc/ssh/sshd_config
 COPY entrypoint.sh /usr/local/bin/workspace-entrypoint
-RUN chmod 0755 /usr/local/bin/workspace-entrypoint \
+COPY activate-home.sh /usr/local/bin/workspace-activate-home
+RUN chmod 0755 /usr/local/bin/workspace-entrypoint /usr/local/bin/workspace-activate-home \
     && printf 'export PATH=/opt/opencode-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin\nexport NIX_REMOTE=local\nexport NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt\n' > /etc/profile
 
 EXPOSE 2222 3000
