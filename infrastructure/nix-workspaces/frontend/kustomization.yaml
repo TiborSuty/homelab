@@ -28,7 +28,7 @@ patches:
         value: 4300
       - op: replace
         path: /spec/template/spec/containers/0/image
-        value: registry.homelab.internal/dev/nix-workspace@sha256:a03c1e5f55d668493753efc87b0a9593bb1e35d350c3ace235079460edc20c8b
+        value: registry.homelab.internal/dev/nix-workspace@sha256:fdf618757be88ad184350354dd511964bf7ca1d58dc8689dd5456e4b64364b06
   - target:
       kind: Service
       name: dev

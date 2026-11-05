@@ -89,6 +89,8 @@ if ssh -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
 fi
 docker rm -f "$container" >/dev/null
 start frontend-pnpm11
+remote 'cat > /tmp/check-nx.sh' < "$(dirname "$0")/check-nx.sh"
+remote 'nx_package=$(dirname "$(dirname "$(readlink -f "$(command -v nx)")")"); bash /tmp/check-nx.sh "$nx_package"'
 remote 'cat > /tmp/check-zsh.zsh' < "$(dirname "$0")/check-zsh.zsh"
 WORKSPACE_TEST_TTY=1 remote 'test "$SHELL" = /opt/tools/bin/zsh; zsh -lic "source /tmp/check-zsh.zsh"'
 remote 'set -eu; tree-sitter --version; grep -q "persistent shell marker" ~/.bashrc; grep -q "persistent profile marker" ~/.bash_profile; grep -q "persistent editor marker" ~/.config/nvim/init.lua; test -w ~/.config/nvim/lazy-lock.json; test -x ~/.nix-profile/bin/nvim'

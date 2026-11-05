@@ -48,7 +48,11 @@ The image flake imports `nix/home/workspace.nix` from
 [`TiborSuty/dotfiles`](https://github.com/TiborSuty/dotfiles/tree/shared-development-tools/nix/home).
 Its `common.nix` is also imported by the Mac's Home Manager configuration.
 This is the single declaration for Neovim, Git, lazygit, tmux, ripgrep, fd,
-fzf, and Tree-sitter. It also imports `shell.nix`, sharing Zsh history,
+fzf, Tree-sitter, and global Nx. Nx 23.2.1 is pinned in
+`nix/packages/nx`, including its npm runtime dependencies and native bindings.
+It uses a Nix-managed Node interpreter without replacing the project Node
+toolchain, and delegates to a repository-local Nx installation when present.
+It also imports `shell.nix`, sharing Zsh history,
 completion, autosuggestions, syntax highlighting, Oh My Zsh snippets, fzf-tab,
 fzf, zoxide, and the Starship theme. Portable initialization lives in
 `shell-init.zsh`. Homebrew, OrbStack, Mac project paths, NVM, and command-scoped
@@ -131,8 +135,8 @@ became ready and its HTML and JavaScript endpoints returned HTTP 200; its
 unchanged application container recovered from one Nx plugin-worker timeout
 on startup. Argo reports Synced/Healthy and Longhorn volumes are healthy.
 The separate backend workspace and DMS application retain their existing
-image digests. The Mac nix-darwin configuration builds with the shared tools
-but has not been activated.
+image digests. Mac activation was pending at this initial deployment; the later Zsh and Nx
+activations are recorded below.
 
 The shared Zsh rollout on 2026-11-05 uses image digest
 `sha256:a03c1e5f55d668493753efc87b0a9593bb1e35d350c3ace235079460edc20c8b`
