@@ -21,7 +21,8 @@ RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" \
     && /opt/tools/bin/git -C /opt/dotfiles fetch --depth=1 origin "$dotfiles_revision" \
     && /opt/tools/bin/git -C /opt/dotfiles checkout -b shared-development-tools FETCH_HEAD \
     && test "$(/opt/tools/bin/git -C /opt/dotfiles rev-parse HEAD)" = "$dotfiles_revision" \
-    && printf '\ndev:x:1000:1000:Developer:/workspace/home:/opt/tools/bin/bash\n' >> /etc/passwd \
+    && printf '\ndev:x:1000:1000:Developer:/workspace/home:/opt/tools/bin/zsh\n' >> /etc/passwd \
+    && printf '/opt/tools/bin/bash\n/opt/tools/bin/zsh\n' > /etc/shells \
     && printf '\ndev:x:1000:\n' >> /etc/group \
     && printf '\ndev:*:1:0:99999:7:::\n' >> /etc/shadow \
     && printf '\nsshd:x:998:998:SSH privilege separation:/var/empty:/bin/false\n' >> /etc/passwd \

@@ -70,7 +70,9 @@ start() {
   return 1
 }
 remote() {
-  ssh -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
+  local -a terminal_args=()
+  if [[ ${WORKSPACE_TEST_TTY:-0} == 1 ]]; then terminal_args=(-tt); fi
+  ssh "${terminal_args[@]}" -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
     -o "UserKnownHostsFile=$test_dir/known_hosts" -o StrictHostKeyChecking=yes \
     -i "$test_dir/key" -p "$port" dev@127.0.0.1 "$@"
 }
@@ -87,6 +89,8 @@ if ssh -F /dev/null -o BatchMode=yes -o IdentitiesOnly=yes \
 fi
 docker rm -f "$container" >/dev/null
 start frontend-pnpm11
+remote 'cat > /tmp/check-zsh.zsh' < "$(dirname "$0")/check-zsh.zsh"
+WORKSPACE_TEST_TTY=1 remote 'test "$SHELL" = /opt/tools/bin/zsh; zsh -lic "source /tmp/check-zsh.zsh"'
 remote 'set -eu; tree-sitter --version; grep -q "persistent shell marker" ~/.bashrc; grep -q "persistent profile marker" ~/.bash_profile; grep -q "persistent editor marker" ~/.config/nvim/init.lua; test -w ~/.config/nvim/lazy-lock.json; test -x ~/.nix-profile/bin/nvim'
 remote 'set -eu; opencode --version; test "$(pnpm --version)" = 11.22.0; nix develop --offline /opt/workspace-flake#frontend-pnpm11 --command pnpm --version'
 docker rm -f "$container" >/dev/null
