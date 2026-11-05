@@ -327,6 +327,13 @@ cluster DNS. Actual EAG routes, internal DNS and application reachability
 must be verified after the user completes company SSO. No AWS configuration
 or database download is part of this VPN rollout.
 
+The pre-login rollout was verified at commit `a887a05`: fullstack was 5/5
+Ready with zero restarts, Argo Synced/Healthy, SSH reachable, and frontend
+HTTP 200. Workspace/Docker DNS and Vaultwarden HTTPS passed. Existing project
+files, SSH host key, image versions, resource limits and data-volume claims
+were preserved; all Longhorn volumes were healthy. The VPN reported
+`NeedsLogin`; actual company connectivity is pending interactive enrollment.
+
 ## Local verification
 
 ```sh
