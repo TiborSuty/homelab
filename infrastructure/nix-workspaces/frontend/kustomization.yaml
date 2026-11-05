@@ -37,7 +37,7 @@ patches:
         value: 32Gi
       - op: replace
         path: /spec/template/spec/containers/0/image
-        value: registry.homelab.internal/dev/nix-workspace@sha256:8c6f975e4b9da4615d1aeed81bf5b1b1737252a7a8e518a92a54ed960c2bd51e
+        value: registry.homelab.internal/dev/nix-workspace@sha256:cf6888e99176b8ff64b9904d139ad4ea0ebc9a1286b82d1e20187433e0d8c690
   - target:
       kind: Service
       name: dev

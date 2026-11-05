@@ -35,6 +35,8 @@
         gzip less openssh procps rsync unzip which util-linux
         # Includes the Compose and Buildx CLI plugins; the engine is external.
         docker-client
+        # AWS SSO, ECR authentication, and development database downloads.
+        awscli2
       ] ++ (homeFor pkgs).config.home.packages;
       frontendFor = pkgs: import ./frontend.nix { inherit pkgs; };
       frontendPnpm11For = pkgs: import ./frontend.nix { inherit pkgs; pnpmVersion = "11.22.0"; };

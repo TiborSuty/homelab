@@ -354,6 +354,24 @@ company Google EAG account as on the Mac. An anonymized `netbird debug bundle
 The workspace returned to 5/5 Ready and frontend HTTP 200 after one automatic
 Nx plugin-worker startup retry. Existing project files were preserved.
 
+AWS CLI v2 is part of the Nix workspace toolset (`awscli2` from the existing
+locked Nixpkgs revision). It is available as `aws` in normal SSH sessions and
+all workspace development shells. AWS configuration and SSO cache belong in
+`~/.aws` on the persistent home volume; credentials are not built into the
+image or committed to Git.
+
+For an SSH-based workspace, configure SSO using a device code so the browser
+can run on the Mac without forwarding a localhost callback:
+
+```sh
+aws configure sso --use-device-code --no-browser
+```
+
+Follow the company AWS setup for the portal, region, account and role. Installing
+the CLI does not authenticate AWS or grant VPN access. The backend's fullstack
+download also needs an authorized AWS profile and connectivity to its dev RDS
+endpoint. See the [AWS SSO configuration reference](https://docs.aws.amazon.com/cli/latest/reference/configure/sso.html).
+
 ## Local verification
 
 ```sh
