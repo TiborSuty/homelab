@@ -372,6 +372,16 @@ the CLI does not authenticate AWS or grant VPN access. The backend's fullstack
 download also needs an authorized AWS profile and connectivity to its dev RDS
 endpoint. See the [AWS SSO configuration reference](https://docs.aws.amazon.com/cli/latest/reference/configure/sso.html).
 
+AWS CLI rollout verified on 2026-11-05: fullstack uses image
+`sha256:cf6888e99176b8ff64b9904d139ad4ea0ebc9a1286b82d1e20187433e0d8c690`
+with AWS CLI **2.34.24**. Native AMD64 validation covered normal SSH, SSO/ECR/RDS
+command models, and the offline backend Nix shell. The live rollout preserved
+home configuration, repository changes, SSH host key and VPN identity; all 18
+previously running Docker containers were restored and DMS container DNS worked.
+The frontend returned HTTP 200 and Argo reported Synced/Healthy. No AWS profile
+was configured and no database download was performed; company VPN access was
+still missing routes, peers and DNS assignments.
+
 ## Local verification
 
 ```sh
