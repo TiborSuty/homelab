@@ -343,6 +343,17 @@ keys. Normal startup does not replace the saved identity. File logging is
 also enabled so `netbird debug bundle -A` can include daemon logs, as requested
 by the company guide. Do not upload a bundle automatically.
 
+The correction was verified at `f6bbb9e`: all five advanced overrides were
+cleared, the same peer IP/public key survived the restart, and NetBird
+reconnected without another SSO login. Direct default NetBird DNS and the
+workspace proxy both resolved cluster/public names; the documented internal
+host `emailengine.i.omnetic.com` returned ENODATA. The server still supplied
+zero peers, networks and nameservers. The user confirmed using the same
+company Google EAG account as on the Mac. An anonymized `netbird debug bundle
+-A` was saved locally for a company DevOps report; no upload was performed.
+The workspace returned to 5/5 Ready and frontend HTTP 200 after one automatic
+Nx plugin-worker startup retry. Existing project files were preserved.
+
 ## Local verification
 
 ```sh
