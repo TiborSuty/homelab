@@ -407,6 +407,18 @@ Enter the Vault token at the terminal prompt. Tokens and downloaded environment
 values must stay out of Git and Nix store-backed configuration. CLI installation
 alone does not authenticate Vault or renew the company VPN session.
 
+Vault rollout verified on 2026-11-06: fullstack uses image
+`sha256:8fe9e1de7f526ec775f087d914754d9225ab548112a80a34bb73375e59140109`
+with Vault **2.0.0**. Native AMD64 tests covered the CLI, login/KV/token commands,
+and the offline frontend Nix shell. Live SSH and `pnpm exec vault version`
+passed. All 21 previously running Docker containers were restored, both
+frontend ports (4200 and 4300) returned HTTP 200, and the automatic Mac tunnel
+on 5200 reconnected successfully. Persistent configuration, repository edits,
+OpenCode policy, Docker override, frontend environment and SSH host key were
+preserved. Argo was Synced/Healthy and Longhorn volumes were healthy. The EAG
+VPN session needed login; Vault authentication and environment download were
+not performed.
+
 ## Local verification
 
 ```sh
