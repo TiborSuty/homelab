@@ -92,6 +92,7 @@ start frontend-pnpm11
 remote 'docker --version; docker compose version; docker buildx version'
 remote 'command -v bw; command -v with_dev_secrets'
 remote 'aws --version; AWS_PAGER= aws configure list-profiles'
+remote 'vault version; vault login -help >/dev/null; vault kv get -help >/dev/null'
 remote 'cat > /tmp/check-vaultwarden.zsh' < "$(dirname "$0")/check-vaultwarden.zsh"
 remote 'zsh -f /tmp/check-vaultwarden.zsh'
 remote 'cat > /tmp/check-nx.sh' < "$(dirname "$0")/check-nx.sh"

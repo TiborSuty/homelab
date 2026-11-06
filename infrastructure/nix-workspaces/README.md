@@ -382,6 +382,31 @@ The frontend returned HTTP 200 and Argo reported Synced/Healthy. No AWS profile
 was configured and no database download was performed; company VPN access was
 still missing routes, peers and DNS assignments.
 
+### HashiCorp Vault CLI
+
+The workspace toolset includes `vault-bin` from the pinned Nixpkgs revision.
+It provides HashiCorp's official `vault` CLI in normal SSH sessions and all
+workspace Nix development shells. The package set permits only `vault-bin`
+under its BSL license; it does not enable unrestricted unfree packages or run
+a Vault server.
+
+The frontend environment downloader uses this CLI. Connect the workspace EAG
+VPN, authenticate interactively, then download the local environments:
+
+```sh
+# From the homelab checkout on the Mac, if the VPN session has expired:
+./infrastructure/nix-workspaces/work-vpn.sh up
+
+# Inside ssh fullstack:
+vault login -address=https://vault.dev.i.omnetic.dev
+cd ~/projects/frontend-monorepo
+pnpm run download-environments:local
+```
+
+Enter the Vault token at the terminal prompt. Tokens and downloaded environment
+values must stay out of Git and Nix store-backed configuration. CLI installation
+alone does not authenticate Vault or renew the company VPN session.
+
 ## Local verification
 
 ```sh

@@ -17,6 +17,11 @@
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
+      pkgsFor = system: import nixpkgs {
+        inherit system;
+        # HashiCorp's official binary is BSL-licensed. Permit only this package.
+        config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "vault-bin";
+      };
       homeFor = pkgs: home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         extraSpecialArgs.bitwardenPackage =
@@ -37,6 +42,8 @@
         docker-client
         # AWS SSO, ECR authentication, and development database downloads.
         awscli2
+        # Company environment downloads use the HashiCorp Vault CLI.
+        vault-bin
       ] ++ (homeFor pkgs).config.home.packages;
       frontendFor = pkgs: import ./frontend.nix { inherit pkgs; };
       frontendPnpm11For = pkgs: import ./frontend.nix { inherit pkgs; pnpmVersion = "11.22.0"; };
@@ -52,9 +59,9 @@
       # Used by the image build to bundle a matching, offline Git checkout.
       dotfilesRevision = dotfiles.rev;
       homeConfigurations = forAllSystems (system:
-        homeFor (import nixpkgs { inherit system; }));
+        homeFor (pkgsFor system));
       packages = forAllSystems (system:
-        let pkgs = import nixpkgs { inherit system; };
+        let pkgs = pkgsFor system;
         in {
           home = (homeFor pkgs).activationPackage;
           default = pkgs.buildEnv {
@@ -79,7 +86,7 @@
           };
         });
       devShells = forAllSystems (system:
-        let pkgs = import nixpkgs { inherit system; };
+        let pkgs = pkgsFor system;
         in {
           default = pkgs.mkShell { packages = toolsFor pkgs; };
           frontend = pkgs.mkShell { packages = toolsFor pkgs ++ frontendFor pkgs; };
