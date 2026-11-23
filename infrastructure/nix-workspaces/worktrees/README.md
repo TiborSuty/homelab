@@ -55,6 +55,9 @@ and resumes enabled worktrees after Pod replacement. Two worktrees may run
 simultaneously within its 32 GiB memory limit. Each process uses a separate
 temporary Nx database. Logs are under ~/.local/state/fullstack-worktrees/.
 Stopping a worktree preserves its branches, files, dependencies and port slot.
+Worktree dependency directories also keep Rspack caches separate. The two
+existing DMS servers sharing the main checkout use separate ephemeral cache
+mounts, preventing different server configurations from reusing the same cache.
 
 The Nix module ~/dotfiles/nix/home/fullstack-worktrees.nix installs the Mac
 CLI and the org.nix-community.home.fullstack-worktree-tunnels LaunchAgent.

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: dms-cache-permissions
+          image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
+          command: [/opt/tools/bin/chown, "1000:1000", /cache/private, /cache/local]
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {cpu: 100m, memory: 32Mi}
+          volumeMounts:
+            - name: dms-private-cache
+              mountPath: /cache/private
+            - name: dms-local-cache
+              mountPath: /cache/local
+      containers:
+        - name: application
+          volumeMounts:
+            - name: dms-private-cache
+              mountPath: /workspace/home/projects/frontend-monorepo/node_modules/.cache/rspack
+        - name: dms-local
+          volumeMounts:
+            - name: dms-local-cache
+              mountPath: /workspace/home/projects/frontend-monorepo/node_modules/.cache/rspack
+      volumes:
+        - name: dms-private-cache
+          emptyDir: {}
+        - name: dms-local-cache
+          emptyDir: {}
