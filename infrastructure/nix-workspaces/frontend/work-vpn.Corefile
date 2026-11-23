@@ -12,13 +12,8 @@ cluster.local:53 homelab.internal:53 {
     health :8089
     ready :8189
     cache 5
-    # Default NetBird DNS on this enrolled peer's persistent VPN address.
-    # Recheck this address if the peer is deleted/re-enrolled or renumbered.
-    # Cluster DNS keeps ordinary lookups working before login or after logout.
-    forward . 100.72.38.175 10.96.0.10 {
-        policy sequential
-        failover SERVFAIL REFUSED
-        max_fails 1
-        health_check 2s
-    }
+    # Follow NetBird's active resolver without pinning the peer's VPN IP.
+    # The imported file also retains cluster DNS as the logged-out fallback.
+    import /run/work-vpn-dns/forward.conf
+    reload 2s 1s
 }

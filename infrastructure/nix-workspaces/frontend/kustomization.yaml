@@ -10,6 +10,7 @@ configMapGenerator:
     files:
       - Corefile=work-vpn.Corefile
       - default.json=work-vpn-default.json
+      - sync-dns.sh=sync-work-vpn-dns.sh
   - name: frontend-startup
     files:
       - start-dms.sh

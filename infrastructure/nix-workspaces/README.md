@@ -314,12 +314,16 @@ checked on a native Talos node; no host TUN device mount is needed here.
 
 A pinned CoreDNS sidecar sends `cluster.local` and `homelab.internal` directly
 to cluster DNS (10.96.0.10). Other queries prefer NetBird's default resolver
-on this enrolled peer's persistent VPN IP, 100.72.38.175:53, falling back to
-cluster DNS on transport errors, SERVFAIL or REFUSED. Recheck that upstream
-address if the peer is deleted/re-enrolled or renumbered. Consumers use the
+from the VPN container's `/etc/resolv.conf`, falling back to cluster DNS on
+transport errors, SERVFAIL or REFUSED. A supervised watcher publishes resolver
+changes to a shared CoreDNS import every two seconds; CoreDNS reloads that
+import automatically. Login, logout and peer IP changes therefore do not need
+a Git edit or Pod replacement. The init container seeds the cluster-DNS
+fallback so CoreDNS can start while the VPN is logged out. Consumers use the
 Pod IP as their nameserver so nested Docker containers can reach it too.
-NetBird manages only its own container's resolver file using its defaults.
-DNS availability and daemon readiness do not imply company resource access.
+NetBird manages only its own container's resolver file using its defaults;
+the watcher never reads its identity or credentials. DNS availability and
+daemon readiness do not imply company resource access.
 
 Native canary validation on 2026-11-05 checked the daemon while logged out,
 0700/0600 state permissions, kernel WireGuard, company-server TLS, Vaultwarden

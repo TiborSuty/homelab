@@ -15,6 +15,8 @@ spec:
               printf 'nameserver %s\n' "$POD_IP" > /resolver/resolv.conf
               sed '/^[[:space:]]*nameserver[[:space:]]/d' /etc/resolv.conf >> /resolver/resolv.conf
               chmod 0644 /resolver/resolv.conf
+              # CoreDNS can start before VPN enrollment; initially use cluster DNS.
+              /bin/sh /vpn-config/sync-dns.sh --once
               # Only seed public settings; NetBird generates this peer's keys.
               # Preserve the enrolled identity on every subsequent restart.
               chmod 0700 /var/lib/netbird
@@ -79,8 +81,23 @@ spec:
           image: docker.io/netbirdio/netbird:0.82.0@sha256:eca5b274c635bfbb04ec6724a0712d1146190dd450eea199eeb83916fdd94965
           # Run the daemon without the image entrypoint's interactive `up`.
           # An unauthenticated VPN must not prevent SSH or the frontend starting.
-          command: [/usr/local/bin/netbird, service, run]
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              /bin/sh /vpn-config/sync-dns.sh &
+              dns_pid=$!
+              /usr/local/bin/netbird service run &
+              vpn_pid=$!
+              trap 'kill "$vpn_pid" "$dns_pid" 2>/dev/null || true; wait || true' EXIT
+              trap 'exit 0' TERM INT
+              # Restart the container if either the VPN or resolver watcher fails.
+              while kill -0 "$vpn_pid" && kill -0 "$dns_pid"; do sleep 2; done
+              exit 1
           env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - {name: NB_MANAGEMENT_URL, value: "https://vpn.eag-group.cloud:33073"}
             - {name: NB_HOSTNAME, value: "nix-fullstack-eag"}
             - {name: NB_LOG_FILE, value: "console,/var/log/netbird/client.log"}
@@ -101,6 +118,11 @@ spec:
           volumeMounts:
             - name: work-vpn-data
               mountPath: /var/lib/netbird
+            - name: work-vpn-resolver
+              mountPath: /resolver
+            - name: work-vpn-config
+              mountPath: /vpn-config
+              readOnly: true
         - name: work-vpn-dns
           image: registry.k8s.io/coredns/coredns:v1.14.6@sha256:900f9c109f7a33545d3c811516e8376df9019147b750f5ce3e254468769176ea
           args: [-conf, /etc/coredns/Corefile]
@@ -130,6 +152,9 @@ spec:
           volumeMounts:
             - name: work-vpn-config
               mountPath: /etc/coredns
+              readOnly: true
+            - name: work-vpn-resolver
+              mountPath: /run/work-vpn-dns
               readOnly: true
       volumes:
         - name: work-vpn-resolver
