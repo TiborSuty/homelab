@@ -26,6 +26,45 @@ nix develop /opt/workspace-flake#frontend-pnpm11
 nix develop /opt/workspace-flake#backend
 ```
 
+## Mac access to fullstack DMS and IAM
+
+The Mac user agent `org.nix-community.home.fullstack-tunnel`, declared in
+`~/dotfiles/nix/home/mac.nix`, maintains these loopback-only SSH forwards:
+
+| Mac port | Fullstack port | Service |
+| --- | --- | --- |
+| 5200 | 4200 | DMS frontend |
+| 5201 | 4201 | IAM frontend |
+| 5800 | 8080 | Backend API gateway |
+
+Open `http://app.localhost:5200/`. Bare `localhost:5200` is not recognized by
+this checkout's workspace-host parser and produces an invalid callback.
+DMS redirects to IAM on `http://localhost:5201/`. Both frontends use the
+forwarded backend at `http://localhost:5800`, configured in their ignored
+`apps/dms/.env.local` and `apps/iam/.env.local` files on the workspace.
+These URLs refer to the Mac browser; they are not workspace-side API URLs.
+
+The frontend Pod starts these development servers automatically in the
+`dms-local` and `iam-local` containers. Kubernetes restarts them if they exit
+and starts them again after Pod replacement. They wait for `.frontend-ready`
+and the corresponding app's `.env`, use separate temporary Nx process databases,
+and report readiness through HTTP checks. Their hot-reload connections use
+the Mac's forwarded ports, so no terminal or tmux session is needed.
+
+Inspect startup or compilation output with:
+
+```sh
+kubectl -n nix-workspaces logs deployment/frontend-dev -c dms-local
+kubectl -n nix-workspaces logs deployment/frontend-dev -c iam-local
+```
+
+The Mac tunnel also restarts automatically. The separate managed DMS on port
+4300 remains available through the private workspace hostname. A fresh
+environment download may replace the local URL overrides. On 2026-11-06,
+the Nix-generated tunnel agent was activated and the
+DMS-to-IAM redirect displayed the login form in Chrome. Credential submission
+and the authenticated application flow were not tested.
+
 The corresponding project tools are also on PATH in ordinary SSH sessions.
 The deployed `frontend` profile supplies pnpm 12.3.4, matching the selected
 fresh clone of `master`. The optional `frontend-pnpm11` profile supports older

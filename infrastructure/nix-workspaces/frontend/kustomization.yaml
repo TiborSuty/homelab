@@ -14,6 +14,7 @@ configMapGenerator:
   - name: frontend-startup
     files:
       - start-dms.sh
+      - start-forwarded-frontend.sh
 patches:
   - target:
       kind: Deployment
@@ -54,5 +55,6 @@ patches:
         path: /spec/serviceRef/name
         value: frontend-dev
   - path: application.yaml
+  - path: forwarded-frontends.yaml
   - path: docker-engine.yaml
   - path: work-vpn.yaml

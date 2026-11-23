@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev
+spec:
+  template:
+    spec:
+      containers:
+        - name: dms-local
+          image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
+          command: [/bin/sh, /run/workspace-startup/start-forwarded-frontend.sh, dms]
+          env:
+            - name: HOME
+              value: /workspace/home
+            - name: PATH
+              value: /opt/frontend-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin
+            - name: NIX_REMOTE
+              value: local
+            - name: NIX_SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-bundle.crt
+            - name: SERVE_TYPECHECK_CHECKERS
+              value: "2"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 16Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4200
+              httpHeaders:
+                - name: Host
+                  value: app.localhost:5200
+            timeoutSeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: home
+              mountPath: /workspace
+            - name: startup
+              mountPath: /run/workspace-startup
+              readOnly: true
+        - name: iam-local
+          image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
+          command: [/bin/sh, /run/workspace-startup/start-forwarded-frontend.sh, iam]
+          env:
+            - name: HOME
+              value: /workspace/home
+            - name: PATH
+              value: /opt/frontend-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin
+            - name: NIX_REMOTE
+              value: local
+            - name: NIX_SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-bundle.crt
+            - name: SERVE_TYPECHECK_CHECKERS
+              value: "2"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 8Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4201
+              httpHeaders:
+                - name: Host
+                  value: localhost:5201
+            timeoutSeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: home
+              mountPath: /workspace
+            - name: startup
+              mountPath: /run/workspace-startup
+              readOnly: true
