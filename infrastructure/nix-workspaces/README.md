@@ -1,14 +1,15 @@
 # Nix development workspaces on Kubernetes
 
-The active development workspace is `frontend-dev` (fullstack), replacing Coder.
-It holds frontend and backend repositories and toolchains. The standalone
+The `fullstack` workspace holds frontend and backend repositories and services.
+The separate `frontend` workspace runs DMS against remote development, with its
+own checkout, home volume, VPN identity, and frontend-only worktree launcher. The standalone
 `backend-dev` deployment and access endpoints have been retired.
 Its original checkout remains on the retained 30 GiB
 `backend-dev-home` volume; changes are not synchronized with the active checkout.
 Argo CD manages the Pods, Longhorn holds project files and home directories,
 and NetBird provides private SSH and HTTP access. Nix pins the development
-tools. No Docker daemon, host mount, privileged container, or Kubernetes API
-token is available inside a workspace.
+tools. Fullstack includes its existing Docker sidecar; frontend has no Docker
+sidecar or local backend. Neither workspace mounts a Kubernetes API token.
 
 The `nix-workspaces` Argo Application is registered in
 `bootstrap/apps/kustomization.yaml` with automatic reconciliation and no
@@ -62,8 +63,8 @@ the Mac's forwarded ports, so no terminal or tmux session is needed.
 Inspect startup or compilation output with:
 
 ```sh
-kubectl -n nix-workspaces logs deployment/frontend-dev -c dms-local
-kubectl -n nix-workspaces logs deployment/frontend-dev -c iam-local
+kubectl -n nix-workspaces logs deployment/fullstack -c dms-local
+kubectl -n nix-workspaces logs deployment/fullstack -c iam-local
 ```
 
 The Mac tunnel also restarts automatically. The separate managed DMS on port
@@ -228,7 +229,7 @@ images and persistent volume claims stayed unchanged.
 
 Fullstack Docker uses the Nixpkgs-pinned `docker-client` package, which includes
 `docker compose` and `docker buildx`. The frontend deployment adds a Docker
-29 engine pinned by digest in `frontend/docker-engine.yaml`. It listens only
+29 engine pinned by digest in `fullstack/docker-engine.yaml`. It listens only
 on `/var/run/docker.sock`, shared with the workspace and accessible to the
 `dev` user's GID 1000. No Docker TCP API or node runtime socket is exposed.
 The engine mounts the existing home volume at the same `/workspace` path,
@@ -583,10 +584,10 @@ uses `Retain`; neither setting replaces an off-cluster backup.
 Expected private endpoints after reconciliation:
 
 ```sh
-ssh -p 2222 dev@frontend-dev.nix-workspaces.homelab.internal
+ssh -p 2222 dev@fullstack.nix-workspaces.homelab.internal
 ```
 
-DMS tenant URL: `http://app.frontend-dev.nix-workspaces.homelab.internal`.
+DMS tenant URL: `http://app.fullstack.nix-workspaces.homelab.internal`.
 The Service preserves the Host header and forwards to port 4300. The dev
 server must accept this hostname and bind to `0.0.0.0`. HTTP access relies on
 the NetBird policy; there is no Coder owner-authenticated application proxy.
@@ -594,7 +595,7 @@ the NetBird policy; there is no Coder owner-authenticated application proxy.
 For an initial connectivity check with Kubernetes access:
 
 ```sh
-kubectl -n nix-workspaces port-forward service/frontend-dev 2222:2222
+kubectl -n nix-workspaces port-forward service/fullstack 2222:2222
 ssh -p 2222 dev@127.0.0.1
 ```
 
@@ -629,7 +630,7 @@ touch ~/.frontend-ready
 ```
 
 Verify tenant routing, authentication redirects and API access. Follow startup
-with `kubectl -n nix-workspaces logs deployment/frontend-dev -c application`.
+with `kubectl -n nix-workspaces logs deployment/fullstack -c application`.
 For the backend, verify `composer check-platform-reqs` and the required CLI
 commands after restoring its dependency/authentication setup.
 
@@ -648,3 +649,34 @@ file inventories. Reinstallable `node_modules` and the root `.pnpm-store` cache
 are excluded. Coder's PostgreSQL was already crash-looping; its stopped files are preserved as-is, without a
 successful logical database restore test. These local backups are private and
 are not committed to Git.
+
+## Independent frontend workspace
+
+Use `ssh frontend` and open `http://app.localhost:8200`. The main DMS starts
+once `~/projects/frontend-monorepo` dependencies are installed and
+`~/.frontend-ready` exists. The environment Secret is copied into DMS with
+mode 0600; remote API and IAM settings remain unchanged.
+
+`frontend-worktree create NAME` creates a DMS-only Git worktree. Use
+`--online` if its packages are missing from the local pnpm store. The same
+`list`, `prepare`, `start`, `stop`, and `logs` commands are available as in
+`fullstack-worktree`. Each workspace permits two active worktrees, in addition
+to its main checkout. Frontend worktrees share remote backend data.
+
+Frontend slot N (1–20) uses workspace port `4300 + 10*N` and Mac port
+`8200 + 100*N`: the first two DMS worktrees use 8300 and 8400. Fullstack ports
+remain unchanged. Mac launchd supervises separate main and worktree tunnels
+for each SSH alias. All listeners bind to loopback and verify pinned host keys.
+
+The frontend runner requests 2 CPUs/4 GiB and is limited to 8 CPUs/16 GiB.
+Fullstack retains its existing runner request of 4 CPUs/40 GiB and limit of
+32 CPUs/40 GiB. These budgets are shared by each runner's active worktrees.
+
+To authenticate the separate frontend work VPN, run
+`WORKSPACE=frontend ./infrastructure/nix-workspaces/work-vpn.sh up`.
+The default target remains fullstack. Enrollment and session renewal follow
+EAG's policy; identities and keys are never copied between workspaces.
+
+The fullstack rename preserves `frontend-dev-home`, `frontend-docker-data`,
+and `frontend-work-vpn-data` PVC names and existing volume bindings. These
+historical internal disk names do not identify the running workspace.

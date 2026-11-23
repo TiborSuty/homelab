@@ -1,0 +1,19 @@
+# These names always belong to the homelab, even if EAG supplies a default DNS.
+cluster.local:53 homelab.internal:53 {
+    bind {$POD_IP}
+    errors
+    cache 30
+    forward . 10.96.0.10
+}
+
+.:53 {
+    bind {$POD_IP}
+    errors
+    health :8089
+    ready :8189
+    cache 5
+    # Follow NetBird's active resolver without pinning the peer's VPN IP.
+    # The imported file also retains cluster DNS as the logged-out fallback.
+    import /run/work-vpn-dns/forward.conf
+    reload 2s 1s
+}

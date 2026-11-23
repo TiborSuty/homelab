@@ -47,4 +47,4 @@ spec:
           emptyDir: {}
         - name: docker-data
           persistentVolumeClaim:
-            claimName: docker-data
+            claimName: frontend-docker-data

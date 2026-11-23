@@ -105,3 +105,19 @@ Validate the supervisor with:
 
 The tests use disposable Git repositories, native-tool fixtures and HTTP/WebSocket processes; it does not
 touch project checkouts or production worktree configuration.
+
+## Frontend-only mode
+
+`frontend-worktree` uses the same manager with `WORKTREE_MODE=frontend` over
+`ssh frontend`. It creates only a frontend branch and serves DMS. Remote API,
+IAM and notification settings are copied unchanged; backend data is shared.
+Its registry is `~/.config/nix-workspace/frontend-worktrees.json`, with logs in
+`~/.local/state/frontend-worktrees`. The fullstack registry format is unchanged.
+
+Slots 1–20 map DMS to workspace `4300 + slot*10` and Mac `8200 + slot*100`.
+Open `http://app.localhost:PORT`; do not add a local backend worktree header.
+Two worktrees may run simultaneously in the frontend runner's 8 CPU/16 GiB
+limit (requests 2 CPU/4 GiB). The main DMS has a separate container budget.
+Use `frontend-worktree create NAME --frontend-ref REF`, optionally `--slot N`,
+`--online` or `--no-start`. Prepare, start, stop, list and logs follow the same
+workflow; only `--app dms` is supported. Stopping preserves code and dependencies.

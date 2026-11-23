@@ -6,54 +6,62 @@ spec:
   template:
     spec:
       containers:
-        - name: workspace
-          volumeMounts:
-            - name: worktree-tools
-              mountPath: /run/worktree-tools
-              readOnly: true
-        - name: worktree-runner
-          image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
-          command: [/opt/frontend-tools/bin/node, /run/worktree-tools/worktrees.cjs, supervise]
-          env:
-            - name: HOME
-              value: /workspace/home
-            - name: PATH
-              value: /opt/frontend-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin
-            - name: NIX_REMOTE
-              value: local
-            - name: NIX_SSL_CERT_FILE
-              value: /etc/ssl/certs/ca-bundle.crt
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: [ALL]
-          resources:
-            # Shared by all worktree frontends; account for the full memory
-            # budget when scheduling alongside the backend and base frontends.
-            requests: {cpu: "4", memory: 40Gi}
-            limits: {cpu: "32", memory: 40Gi}
-          readinessProbe:
-            exec:
-              command:
-                - /opt/frontend-tools/bin/node
-                - -e
-                - "process.exit(Date.now()-Number(require('fs').readFileSync('/tmp/worktree-runner-heartbeat','utf8'))<30000?0:1)"
-            periodSeconds: 10
-            timeoutSeconds: 5
-          volumeMounts:
-            - name: home
-              mountPath: /workspace
-            - name: worktree-tools
-              mountPath: /run/worktree-tools
-              readOnly: true
-            - name: work-vpn-resolver
-              mountPath: /etc/resolv.conf
-              subPath: resolv.conf
-              readOnly: true
+      - name: workspace
+        volumeMounts:
+        - name: frontend-worktree-tools
+          mountPath: /run/worktree-tools
+          readOnly: true
+      - name: worktree-runner
+        image: registry.homelab.internal/dev/nix-workspace@sha256:1f18ea8694c5bd42430fa65baaef724300a34766a94f3e486618ae1e11646e57
+        command:
+        - /opt/frontend-tools/bin/node
+        - /run/worktree-tools/worktrees.cjs
+        - supervise
+        env:
+        - name: HOME
+          value: /workspace/home
+        - name: PATH
+          value: /opt/frontend-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin
+        - name: NIX_REMOTE
+          value: local
+        - name: NIX_SSL_CERT_FILE
+          value: /etc/ssl/certs/ca-bundle.crt
+        - name: WORKTREE_MODE
+          value: frontend
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: '2'
+            memory: 4Gi
+          limits:
+            cpu: '8'
+            memory: 16Gi
+        readinessProbe:
+          exec:
+            command:
+            - /opt/frontend-tools/bin/node
+            - -e
+            - process.exit(Date.now()-Number(require('fs').readFileSync('/tmp/worktree-runner-heartbeat','utf8'))<30000?0:1)
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: home
+          mountPath: /workspace
+        - name: frontend-worktree-tools
+          mountPath: /run/worktree-tools
+          readOnly: true
+        - name: work-vpn-resolver
+          mountPath: /etc/resolv.conf
+          subPath: resolv.conf
+          readOnly: true
       volumes:
-        - name: worktree-tools
-          configMap:
-            name: worktree-tools
+      - name: frontend-worktree-tools
+        configMap:
+          name: frontend-worktree-tools

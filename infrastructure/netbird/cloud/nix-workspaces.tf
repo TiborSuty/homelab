@@ -25,8 +25,16 @@ resource "netbird_policy" "nix_workspaces" {
 # the HTTP Host header, so no Coder proxy or extra nginx gateway is needed.
 resource "netbird_dns_record" "nix_frontend_tenants" {
   zone_id = data.netbird_dns_zone.homelab.id
-  name    = "*.frontend-dev.nix-workspaces.homelab.internal"
+  name    = "*.frontend.nix-workspaces.homelab.internal"
   type    = "CNAME"
-  content = "frontend-dev.nix-workspaces.homelab.internal"
+  content = "frontend.nix-workspaces.homelab.internal"
+  ttl     = 300
+}
+
+resource "netbird_dns_record" "nix_fullstack_tenants" {
+  zone_id = data.netbird_dns_zone.homelab.id
+  name    = "*.fullstack.nix-workspaces.homelab.internal"
+  type    = "CNAME"
+  content = "fullstack.nix-workspaces.homelab.internal"
   ttl     = 300
 }
