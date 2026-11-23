@@ -79,10 +79,10 @@ Mac ports. Workspace port conflicts are rejected without stopping their owners.
 The Kubernetes worktree-runner container supervises enabled DMS/IAM processes and API proxies.
 It reloads ~/.config/nix-workspace/worktrees.json, restarts failed processes,
 and resumes enabled worktrees after Pod replacement. Two worktrees may run
-simultaneously within its shared limit of 32 CPUs and 28 GiB RAM. Kubernetes
-requests 4 CPUs and the full 28 GiB memory budget for scheduling. The RAM cap
-leaves about 2 GiB beyond the other workloads' observed peak usage on the
-current ~63-GiB node; reassess it when those workloads change. Each process uses a separate
+simultaneously within its shared limit of 32 CPUs and 40 GiB RAM. Kubernetes
+requests 4 CPUs and the full 40 GiB memory budget for scheduling. The memory
+limit permits larger builds; simultaneous peaks in the backend and original
+frontends still compete for the current ~63-GiB node's RAM. Each process uses a separate
 temporary Nx database. Logs are under ~/.local/state/fullstack-worktrees/.
 Stopping a worktree closes its frontends, API proxy and Mac tunnels. It preserves
 branches, files, dependencies, databases and port slot. Native Unit applications
