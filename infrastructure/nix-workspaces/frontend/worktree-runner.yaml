@@ -31,8 +31,10 @@ spec:
             capabilities:
               drop: [ALL]
           resources:
-            requests: {cpu: 250m, memory: 256Mi}
-            limits: {cpu: "6", memory: 32Gi}
+            # Shared by all worktree frontends. On the ~63-GiB nodes, recent
+            # base-workload peaks leave ~30 GiB; keep ~2 GiB of headroom.
+            requests: {cpu: "4", memory: 28Gi}
+            limits: {cpu: "32", memory: 28Gi}
           readinessProbe:
             exec:
               command:
