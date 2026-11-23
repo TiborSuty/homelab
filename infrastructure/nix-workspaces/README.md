@@ -668,7 +668,7 @@ Frontend slot N (1–20) uses workspace port `4300 + 10*N` and Mac port
 remain unchanged. Mac launchd supervises separate main and worktree tunnels
 for each SSH alias. All listeners bind to loopback and verify pinned host keys.
 
-The frontend runner requests 2 CPUs/4 GiB and is limited to 8 CPUs/16 GiB.
+The frontend runner requests 2 CPUs/16 GiB and is limited to 8 CPUs/32 GiB.
 Fullstack retains its existing runner request of 4 CPUs/40 GiB and limit of
 32 CPUs/40 GiB. These budgets are shared by each runner's active worktrees.
 
