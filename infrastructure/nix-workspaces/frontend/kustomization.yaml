@@ -3,6 +3,7 @@ kind: Kustomization
 namePrefix: frontend-
 resources:
   - ../base
+  - ../worktrees
   - docker-data.yaml
   - work-vpn-data.yaml
 configMapGenerator:
@@ -56,5 +57,6 @@ patches:
         value: frontend-dev
   - path: application.yaml
   - path: forwarded-frontends.yaml
+  - path: worktree-runner.yaml
   - path: docker-engine.yaml
   - path: work-vpn.yaml
