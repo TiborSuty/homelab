@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const net = require('node:net');
 const { spawn, spawnSync } = require('node:child_process');
+const backend = require('./backend.cjs');
 
 const home = process.env.WORKTREE_HOME || process.env.HOME;
 const configDir = path.join(home, '.config/nix-workspace');
@@ -30,8 +31,8 @@ function validateName(name) {
 function ports(slot) {
   if (!Number.isInteger(slot) || slot < 1 || slot > 20) throw new Error('Slot must be between 1 and 20.');
   if (slot === 6) throw new Error('Slot 6 is reserved for the shared API port 5800.');
-  return { dms: 4200 + slot * 10, iam: 4201 + slot * 10,
-    macDms: 5200 + slot * 100, macIam: 5201 + slot * 100, macApi: 5800 };
+  return { dms: 4200 + slot * 10, iam: 4201 + slot * 10, api: 4202 + slot * 10,
+    macDms: 5200 + slot * 100, macIam: 5201 + slot * 100, macApi: 5202 + slot * 100 };
 }
 
 function readConfig() {
@@ -99,9 +100,10 @@ function copyEnvironment(entry) {
     if (fs.existsSync(file) && fs.lstatSync(file).isSymbolicLink()) throw new Error('Refusing symlinked environment file.');
     let text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     const updates = app === 'dms'
-      ? { API_URL: 'http://localhost:5800', BACKEND_API_URL: 'http://localhost:5800',
-          IAM_URL: 'http://localhost:' + p.macIam }
-      : { API_URL: 'http://localhost:5800',
+      ? { API_URL: 'http://localhost:' + p.macApi, BACKEND_API_URL: 'http://localhost:' + p.macApi,
+          IAM_URL: 'http://localhost:' + p.macIam,
+          APPSYNC_URL: 'ws://localhost:' + p.macApi + '/_notifications/wt/' + entry.name + '/graphql' }
+      : { API_URL: 'http://localhost:' + p.macApi,
           DMS_WORKSPACE_URL: 'http://app.localhost:' + p.macDms + '/workspace-initialize' };
     for (const [key, value] of Object.entries(updates)) {
       const re = new RegExp('^' + key + '=.*$', 'm');
@@ -120,9 +122,10 @@ async function create(config, request) {
     if (entry.slot !== request.slot) throw new Error('Existing worktree has a different slot.');
   } else {
     if (config.worktrees.some(x => x.slot === request.slot)) throw new Error('Slot is already allocated.');
-    for (const port of [p.dms, p.iam]) if (!await portFree(port)) throw new Error('Workspace port is occupied: ' + port);
+    for (const port of [p.dms, p.iam, p.api]) if (!await portFree(port)) throw new Error('Workspace port is occupied: ' + port);
     if (fs.existsSync(path.join(worktreesDir, request.name))) throw new Error('Destination already exists; refusing to adopt it.');
-    entry = { name: request.name, slot: request.slot, enabled: false, commits: {} };
+    if (fs.existsSync(backend.checkout(home, request))) throw new Error('Backend worktree already exists; refusing to adopt it.');
+    entry = { name: request.name, slot: request.slot, enabled: false, backendMode: backend.mode, commits: {} };
     for (const repo of ['frontend', 'backend']) {
       const source = path.join(home, 'projects', repo + '-monorepo');
       const ref = request[repo + 'Ref'] || 'HEAD';
@@ -141,12 +144,17 @@ async function create(config, request) {
     const source = path.join(home, 'projects', repo + '-monorepo');
     const target = path.join(root, repo);
     const branch = 'worktree/' + entry.name;
-    if (fs.existsSync(target)) {
+    const gitCheck = target => {
       const expected = fs.realpathSync(path.join(source, '.git'));
       const common = command([git, 'rev-parse', '--path-format=absolute', '--git-common-dir'], target);
       if (fs.realpathSync(common) !== expected || command([git, 'branch', '--show-current'], target) !== branch) {
         throw new Error('Existing checkout does not match this worktree: ' + target);
       }
+    };
+    if (repo === 'backend') {
+      await backend.create(home, entry, gitCheck);
+    } else if (fs.existsSync(target)) {
+      gitCheck(target);
     } else {
       command([git, 'worktree', 'add', '-b', branch, target, entry.commits[repo]], source, false);
     }
@@ -161,7 +169,8 @@ function status(config) {
   const runnerAlive = Boolean(runtime && Date.now() - runtime.updatedAt < 15000);
   return { version: 1, maxActive, runnerAlive, worktrees: config.worktrees.map(entry => ({
     ...entry, path: entryRoot(entry), ports: ports(entry.slot),
-    prepared: fs.existsSync(path.join(entryRoot(entry), '.prepared')),
+    backendPath: backend.checkout(home, entry),
+    prepared: backend.ready(home, entry) && fs.existsSync(path.join(entryRoot(entry), '.prepared')),
     apps: runnerAlive ? runtime.apps.filter(x => x.name === entry.name) : [],
   })) };
 }
@@ -183,25 +192,28 @@ async function rpc(request) {
       const root = entryRoot(entry);
       if (request.action === 'prepare') {
         if (entry.enabled) throw new Error('Stop this worktree before installing dependencies.');
+        fs.rmSync(path.join(root, '.prepared'), { force: true });
+        fs.rmSync(path.join(root, '.backend-prepared'), { force: true });
         copyEnvironment(entry);
-        const args = ['/opt/frontend-tools/bin/pnpm', 'install', '--frozen-lockfile'];
+        const args = [process.env.WORKTREE_PNPM || '/opt/frontend-tools/bin/pnpm', 'install', '--frozen-lockfile'];
         if (!request.online) args.push('--offline');
         command(args, path.join(root, 'frontend'), false);
+        await backend.prepare(home, entry);
         fs.writeFileSync(path.join(root, '.prepared'), new Date().toISOString() + '\n', { mode: 0o600 });
       } else if (request.action === 'start' || request.action === 'stop') {
         if (request.action === 'start') {
-          if (!fs.existsSync(path.join(root, '.prepared'))) throw new Error('Run prepare before starting this worktree.');
+          if (!backend.ready(home, entry) || !fs.existsSync(path.join(root, '.prepared'))) throw new Error('Run prepare before starting this worktree, including its isolated backend.');
           if (!entry.enabled && config.worktrees.filter(x => x.enabled).length >= maxActive) {
             throw new Error('Two worktrees are already running; stop one first.');
           }
-          if (!entry.enabled) for (const port of [ports(entry.slot).dms, ports(entry.slot).iam]) {
+          if (!entry.enabled) for (const port of [ports(entry.slot).dms, ports(entry.slot).iam, ports(entry.slot).api]) {
             if (!await portFree(port)) throw new Error('Workspace port is occupied: ' + port);
           }
         }
         entry.enabled = request.action === 'start';
         atomic(configFile, config);
       } else if (request.action === 'logs') {
-        if (!['dms', 'iam'].includes(request.app)) throw new Error('App must be dms or iam.');
+        if (!['dms', 'iam', 'api'].includes(request.app)) throw new Error('App must be dms, iam or api.');
         const file = path.join(stateDir, entry.name, request.app + '.log');
         if (!fs.existsSync(file)) return { text: 'No log yet.' };
         const fd = fs.openSync(file, 'r'), size = fs.fstatSync(fd).size;
@@ -241,8 +253,8 @@ async function supervise() {
       const config = readConfig(), desired = new Map();
       for (const entry of config.worktrees.filter(x => x.enabled)) {
         const cwd = path.join(entryRoot(entry), 'frontend');
-        if (!fs.existsSync(path.join(entryRoot(entry), '.prepared'))) continue;
-        for (const app of ['dms', 'iam']) desired.set(entry.name + '/' + app, { entry, app, cwd });
+        if (!backend.ready(home, entry) || !fs.existsSync(path.join(entryRoot(entry), '.prepared'))) continue;
+        for (const app of ['dms', 'iam', 'api']) desired.set(entry.name + '/' + app, { entry, app, cwd });
       }
       for (const [key, child] of children) if (!desired.has(key)) {
         child.cancelled = true;
@@ -265,9 +277,11 @@ async function supervise() {
         const env = { ...process.env, NX_DAEMON: 'false', NX_ISOLATE_PLUGINS: 'false',
           NX_WORKSPACE_DATA_DIRECTORY: '/tmp/nx-worktree-' + entry.name + '-' + app,
           SERVE_TYPECHECK_CHECKERS: '2' };
-        const child = spawn(path.join(cwd, 'node_modules/.bin/nx'),
-          ['serve', app, '--host=0.0.0.0', '--port=' + port,
-            '--publicHost=ws://localhost:' + (app === 'dms' ? p.macDms : p.macIam) + '/ws'],
+        const executable = app === 'api' ? process.execPath : path.join(cwd, 'node_modules/.bin/nx');
+        const args = app === 'api' ? [path.join(__dirname, 'backend-proxy.cjs'), entry.name, String(port)]
+          : ['serve', app, '--host=0.0.0.0', '--port=' + port,
+            '--publicHost=ws://localhost:' + (app === 'dms' ? p.macDms : p.macIam) + '/ws'];
+        const child = spawn(executable, args,
           { cwd, env, detached: true, stdio: ['ignore', fd, fd] });
         fs.closeSync(fd);
         children.set(key, child);

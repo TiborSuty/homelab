@@ -67,6 +67,37 @@ test('worktree creation preserves source edits; supervisor recovers and stops on
       git(['config', 'user.name', 'Test'], cwd);
       fs.writeFileSync(path.join(cwd, 'README'), 'committed\n');
       fs.writeFileSync(path.join(cwd, '.gitignore'), '.env*\nnode_modules/\n');
+      if (repo === 'backend') {
+        fs.appendFileSync(path.join(cwd, '.gitignore'), '.worktrees/\n');
+        fs.mkdirSync(path.join(cwd, 'bin'));
+        const native = '#!' + process.execPath + '\n' + String.raw`
+const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process');
+const main = path.dirname(__dirname), args = process.argv.slice(2);
+if (process.env.IN_DOCKER !== '0') process.exit(31);
+if (args[0] === 'worktree' && args[1] === 'create') {
+  const name = args[2], dest = path.join(main, '.worktrees', name);
+  const result = cp.spawnSync(process.env.WORKTREE_GIT,
+    ['worktree','add','-b',args[4],dest,args[6]], {cwd:main,stdio:'ignore'});
+  if (result.status) process.exit(result.status);
+  for (const app of ['dms','admin','car-audit','adexport','mapper','mcp','common']) {
+    const dir = path.join(dest,'projects',app); fs.mkdirSync(dir,{recursive:true});
+    fs.writeFileSync(path.join(dir,'.env.local'),'WORKTREE_NAME='+name+'\n');
+    fs.writeFileSync(path.join(dir,'.env.test.local'),
+      'MULTITENANT_DBNAME_PREFIX=wt_'+name.replaceAll('-','_')+'_'+app.replaceAll('-','_')+'_\n');
+  }
+} else if (args[0] === 'fullstack' && args[1] === 'on') {
+  if (!process.cwd().startsWith(path.join(main,'.worktrees')+path.sep)) process.exit(32);
+  if (fs.existsSync('.fail-provision')) process.exit(36);
+  fs.writeFileSync(path.join(process.cwd(),'.fullstack-called'), 'scoped');
+} else process.exit(33);
+`;
+        fs.writeFileSync(path.join(cwd, 'bin/teas-mono'), native, { mode: 0o755 });
+        fs.writeFileSync(path.join(cwd, 'bin/ai-mono'), '#!' + process.execPath + '\n' + String.raw`
+const fs=require('node:fs');
+if (process.argv.slice(2).join(' ')!=='composer install --no-scripts') process.exit(34);
+if (fs.existsSync('.fail-install')) process.exit(35);
+`, { mode: 0o755 });
+      }
       if (repo === 'frontend') for (const app of ['dms', 'iam']) {
         const dir = path.join(cwd, 'apps', app);
         fs.mkdirSync(dir, { recursive: true });
@@ -87,6 +118,9 @@ test('worktree creation preserves source edits; supervisor recovers and stops on
     assert.match(fs.readFileSync(path.join(root, 'projects/frontend-monorepo/README'), 'utf8'), /uncommitted/);
     const environment = path.join(entry.path, 'frontend/apps/dms/.env.local');
     assert.match(fs.readFileSync(environment, 'utf8'), /IAM_URL=http:\/\/localhost:7101/);
+    assert.match(fs.readFileSync(environment, 'utf8'), /API_URL=http:\/\/localhost:7102/);
+    assert.match(fs.readFileSync(environment, 'utf8'), /APPSYNC_URL=ws:\/\/localhost:7102\/_notifications\/wt\/fixture\/graphql/);
+    assert.equal(fs.realpathSync(path.join(entry.path, 'backend')), fs.realpathSync(entry.backendPath));
     assert.equal(fs.statSync(environment).mode & 0o777, 0o600);
     await assert.rejects(manager.rpc({ action: 'create', name: 'duplicate', slot: 19 }), /allocated/);
     await assert.rejects(manager.rpc({ action: 'start', name: 'fixture' }), /prepare/);
@@ -97,7 +131,19 @@ test('worktree creation preserves source edits; supervisor recovers and stops on
       "const port=Number(process.argv.find(x=>x.startsWith('--port=')).split('=')[1]);\n" +
       "http.createServer((req,res)=>res.end(process.env.NX_WORKSPACE_DATA_DIRECTORY)).listen(port,'0.0.0.0');\n",
       { mode: 0o755 });
-    fs.writeFileSync(path.join(entry.path, '.prepared'), 'fixture');
+    const pnpm = path.join(root, 'pnpm');
+    fs.writeFileSync(pnpm, '#!' + process.execPath + '\nprocess.exit(0);\n', { mode: 0o755 });
+    process.env.WORKTREE_PNPM = pnpm;
+    fs.writeFileSync(path.join(entry.backendPath, '.fail-install'), '');
+    await assert.rejects(manager.rpc({ action: 'prepare', name: 'fixture' }), /failed/);
+    await assert.rejects(manager.rpc({ action: 'start', name: 'fixture' }), /prepare/);
+    fs.unlinkSync(path.join(entry.backendPath, '.fail-install'));
+    fs.writeFileSync(path.join(entry.backendPath, '.fail-provision'), '');
+    await assert.rejects(manager.rpc({ action: 'prepare', name: 'fixture' }), /failed/);
+    await assert.rejects(manager.rpc({ action: 'start', name: 'fixture' }), /prepare/);
+    fs.unlinkSync(path.join(entry.backendPath, '.fail-provision'));
+    await manager.rpc({ action: 'prepare', name: 'fixture' });
+    assert.equal(fs.readFileSync(path.join(entry.backendPath, '.fullstack-called'), 'utf8'), 'scoped');
     const occupied = http.createServer();
     await new Promise(resolve => occupied.listen(p.dms, '0.0.0.0', resolve));
     await assert.rejects(manager.rpc({ action: 'start', name: 'fixture' }), /occupied/);
@@ -106,6 +152,7 @@ test('worktree creation preserves source edits; supervisor recovers and stops on
     launchDaemon();
     assert.match(await until(() => get(p.dms), 'DMS started'), /fixture-dms/);
     assert.match(await until(() => get(p.iam), 'IAM started'), /fixture-iam/);
+    assert.match(await until(() => get(p.api), 'API proxy started'), /Worktree backend unavailable/);
     const firstPid = (await manager.rpc({ action: 'list' })).worktrees[0].apps.find(x => x.app === 'dms').pid;
     process.kill(firstPid, 'SIGTERM');
     await until(async () => {
@@ -119,6 +166,9 @@ test('worktree creation preserves source edits; supervisor recovers and stops on
     await until(async () => {
       try { await get(p.dms); return false; } catch { return true; }
     }, 'DMS stopped');
+    await until(async () => {
+      try { await get(p.api); return false; } catch { return true; }
+    }, 'API proxy stopped');
     assert.ok(fs.existsSync(path.join(entry.path, 'frontend/README')));
     assert.ok(fs.existsSync(path.join(entry.path, 'backend/README')));
   });

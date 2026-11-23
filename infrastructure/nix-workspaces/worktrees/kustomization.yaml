@@ -4,3 +4,5 @@ configMapGenerator:
   - name: worktree-tools
     files:
       - worktrees.cjs
+      - backend.cjs
+      - backend-proxy.cjs
