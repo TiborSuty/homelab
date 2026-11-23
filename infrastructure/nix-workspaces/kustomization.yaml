@@ -5,4 +5,4 @@ resources:
   - namespace.yaml
   - storage-class.yaml
   - frontend
-  - backend
+  - retained-backend-home.yaml

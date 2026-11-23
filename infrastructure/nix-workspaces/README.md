@@ -1,6 +1,10 @@
 # Nix development workspaces on Kubernetes
 
-These are the frontend and backend development workspaces, replacing Coder.
+The active development workspace is `frontend-dev` (fullstack), replacing Coder.
+It holds frontend and backend repositories and toolchains. The standalone
+`backend-dev` deployment and access endpoints have been retired.
+Its original checkout remains on the retained 30 GiB
+`backend-dev-home` volume; changes are not synchronized with the active checkout.
 Argo CD manages the Pods, Longhorn holds project files and home directories,
 and NetBird provides private SSH and HTTP access. Nix pins the development
 tools. No Docker daemon, host mount, privileged container, or Kubernetes API
@@ -14,9 +18,13 @@ pinned by the verified registry manifest digest.
 | Workspace | Persistent storage | Tools | Application port |
 | --- | --- | --- | --- |
 | `frontend-dev` | 50 GiB | Node 24.13.0, pnpm 12.3.4, native build tools | 4300 |
-| `backend-dev` | 30 GiB | PHP 8.4, Composer, declared PHP extensions | 8080 |
 
-The image also includes Git, Neovim, tmux, rsync and Nix. Both workspaces use
+The retired backend home's 30 GiB PVC remains declared in
+`retained-backend-home.yaml`, protected from Argo pruning and deletion. It has
+no running Pod, Service, or NetBird endpoint. Deleting its stored data is a
+separate operation.
+
+The image also includes Git, Neovim, tmux, rsync and Nix. The active workspace uses
 UID/GID 1000 and `/workspace/home` as their home directory. Put repositories
 under `~/projects`. Nix shells are available with:
 
@@ -569,14 +577,13 @@ uses `Retain`; neither setting replaces an off-cluster backup.
 5. Commit/publish the reviewed GitOps changes, add `nix-workspaces.yaml` to
    `bootstrap/apps/kustomization.yaml`, then sync the new Argo Application.
    Automatic reconciliation keeps the declared workspace resources in sync.
-6. Verify image pulls, PVC attachment, both Deployments, NetBird resource
+6. Verify image pulls, PVC attachment, the fullstack Deployment, NetBird resource
    reconciliation, SSH access, and HTTP access before importing any data.
 
 Expected private endpoints after reconciliation:
 
 ```sh
 ssh -p 2222 dev@frontend-dev.nix-workspaces.homelab.internal
-ssh -p 2222 dev@backend-dev.nix-workspaces.homelab.internal
 ```
 
 DMS tenant URL: `http://app.frontend-dev.nix-workspaces.homelab.internal`.

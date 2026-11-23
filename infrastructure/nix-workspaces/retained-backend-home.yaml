@@ -1,0 +1,15 @@
+# The standalone backend workspace is retired. Keep its original checkout
+# and home files recoverable without running a Pod or exposing an endpoint.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-dev-home
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-nix-workspaces
+  resources:
+    requests:
+      storage: 30Gi
