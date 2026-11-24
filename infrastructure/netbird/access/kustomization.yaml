@@ -6,3 +6,4 @@ resources:
   - rbac.yaml
   - cluster-proxy.yaml
   - network-router.yaml
+  - router-identity.yaml
