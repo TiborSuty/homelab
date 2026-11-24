@@ -18,6 +18,12 @@ spec:
       spec:
         hostname: homelab-services-router
         volumes:
+          # v0.8.0 decodes merged volumes into its existing slice. Keep the
+          # four emptyDirs in their original slots and append the PVC.
+          - name: netbird-run
+          - name: netbird-lib
+          - name: ssh-etc
+          - name: resolv-conf
           - name: persistent-identity
             persistentVolumeClaim:
               claimName: homelab-router-identity
