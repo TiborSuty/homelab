@@ -25,6 +25,14 @@ patches:
     spec:
       template:
         spec:
+          containers:
+          - name: workspace
+            command:
+            - /bin/sh
+            - -ec
+            - |
+              printf '\nMatch User dev\n  AllowTcpForwarding yes\n  PermitListen 127.0.0.1:19988\n' >> /etc/ssh/sshd_config
+              exec /usr/local/bin/workspace-entrypoint
           volumes:
           - name: home
             persistentVolumeClaim:
