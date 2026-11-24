@@ -2,7 +2,13 @@
 set -eu
 
 case "${WORKSPACE_PROFILE:-default}" in
-  frontend|frontend-pnpm11|backend) project_bin="/opt/${WORKSPACE_PROFILE}-tools/bin:" ;;
+  frontend|frontend-pnpm11|backend)
+    if [ ! -d "/opt/${WORKSPACE_PROFILE}-tools/bin" ]; then
+      echo "This image does not include the $WORKSPACE_PROFILE profile." >&2
+      exit 1
+    fi
+    project_bin="/opt/${WORKSPACE_PROFILE}-tools/bin:"
+    ;;
   default) WORKSPACE_PROFILE=default; project_bin= ;;
   *) echo 'Unknown WORKSPACE_PROFILE' >&2; exit 1 ;;
 esac

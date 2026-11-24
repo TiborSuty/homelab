@@ -17,6 +17,8 @@
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
+      # The Docker build copies the selected workspace configuration to this path.
+      workspace = import ./workspace.nix { inherit dotfiles; };
       pkgsFor = system: import nixpkgs {
         inherit system;
         # HashiCorp's official binary is BSL-licensed. Permit only this package.
@@ -27,7 +29,7 @@
         extraSpecialArgs.bitwardenPackage =
           nixpkgs-bitwarden.legacyPackages.${pkgs.stdenv.hostPlatform.system}.bitwarden-cli;
         modules = [
-          (dotfiles + "/nix/home/workspace.nix")
+          workspace.homeModule
           {
             # The workspace is a CLI container, without a GPU or user systemd.
             targets.genericLinux.gpu.enable = false;
@@ -38,13 +40,7 @@
       toolsFor = pkgs: with pkgs; [
         bashInteractive coreutils curl findutils gnugrep gnused gnutar
         gzip less openssh procps rsync unzip which util-linux
-        # Includes the Compose and Buildx CLI plugins; the engine is external.
-        docker-client
-        # AWS SSO, ECR authentication, and development database downloads.
-        awscli2
-        # Company environment downloads use the HashiCorp Vault CLI.
-        vault-bin
-      ] ++ (homeFor pkgs).config.home.packages;
+      ] ++ workspace.extraTools pkgs ++ (homeFor pkgs).config.home.packages;
       frontendFor = pkgs: import ./frontend.nix { inherit pkgs; };
       frontendPnpm11For = pkgs: import ./frontend.nix { inherit pkgs; pnpmVersion = "11.22.0"; };
       backendFor = pkgs:
@@ -58,6 +54,8 @@
     in {
       # Used by the image build to bundle a matching, offline Git checkout.
       dotfilesRevision = dotfiles.rev;
+      projectProfiles = nixpkgs.lib.concatStringsSep " "
+        ([ "frontend" "frontend-pnpm11" ] ++ nixpkgs.lib.optional workspace.includeBackend "backend");
       homeConfigurations = forAllSystems (system:
         homeFor (pkgsFor system));
       packages = forAllSystems (system:
@@ -79,6 +77,7 @@
             paths = frontendPnpm11For pkgs;
             pathsToLink = [ "/bin" ];
           };
+        } // nixpkgs.lib.optionalAttrs workspace.includeBackend {
           backend = pkgs.buildEnv {
             name = "backend-tools";
             paths = backendFor pkgs;
@@ -91,6 +90,7 @@
           default = pkgs.mkShell { packages = toolsFor pkgs; };
           frontend = pkgs.mkShell { packages = toolsFor pkgs ++ frontendFor pkgs; };
           frontend-pnpm11 = pkgs.mkShell { packages = toolsFor pkgs ++ frontendPnpm11For pkgs; };
+        } // nixpkgs.lib.optionalAttrs workspace.includeBackend {
           backend = pkgs.mkShell { packages = toolsFor pkgs ++ backendFor pkgs; };
         });
     };

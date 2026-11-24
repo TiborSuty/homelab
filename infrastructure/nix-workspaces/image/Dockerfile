@@ -2,16 +2,18 @@ FROM nixos/nix:2.31.2@sha256:29fc5fe207f159ceb0143c25c19c774062fee02ce5eda118f30
 
 # QEMU/Rosetta builds may need false; the running workspace keeps the default.
 ARG NIX_BUILD_FILTER_SYSCALLS=true
+ARG WORKSPACE_CONFIG=workspace.nix
 COPY flake.nix flake.lock frontend.nix /opt/workspace-flake/
+COPY ${WORKSPACE_CONFIG} /opt/workspace-flake/workspace.nix
 RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" \
     && nix --extra-experimental-features 'nix-command flakes' build \
       --no-update-lock-file /opt/workspace-flake#default --out-link /opt/tools \
-    && nix --extra-experimental-features 'nix-command flakes' build \
-      --no-update-lock-file /opt/workspace-flake#frontend --out-link /opt/frontend-tools \
-    && nix --extra-experimental-features 'nix-command flakes' build \
-      --no-update-lock-file /opt/workspace-flake#frontend-pnpm11 --out-link /opt/frontend-pnpm11-tools \
-    && nix --extra-experimental-features 'nix-command flakes' build \
-      --no-update-lock-file /opt/workspace-flake#backend --out-link /opt/backend-tools \
+    && profiles=$(nix --extra-experimental-features 'nix-command flakes' eval \
+      --raw --no-update-lock-file /opt/workspace-flake#projectProfiles) \
+    && for profile in $profiles; do \
+         nix --extra-experimental-features 'nix-command flakes' build --no-update-lock-file \
+           "/opt/workspace-flake#$profile" --out-link "/opt/$profile-tools" || exit 1; \
+       done \
     && nix --extra-experimental-features 'nix-command flakes' build \
       --no-update-lock-file /opt/workspace-flake#home --out-link /opt/home-manager \
     && dotfiles_revision=$(nix --extra-experimental-features 'nix-command flakes' eval \
@@ -44,12 +46,13 @@ ENV PATH=/opt/opencode-tools/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bi
     TERM=xterm-256color
 
 # Realise the shell environments during the image build as the workspace user.
-# An SSH session can then enter either shell without fetching build inputs.
+# An SSH session can then enter each included shell without fetching build inputs.
 USER 1000:1000
-RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" \
-    && XDG_CACHE_HOME=/tmp/nix-cache nix print-dev-env /opt/workspace-flake#frontend >/dev/null \
-    && XDG_CACHE_HOME=/tmp/nix-cache nix print-dev-env /opt/workspace-flake#frontend-pnpm11 >/dev/null \
-    && XDG_CACHE_HOME=/tmp/nix-cache nix print-dev-env /opt/workspace-flake#backend >/dev/null
+RUN export NIX_CONFIG="filter-syscalls = $NIX_BUILD_FILTER_SYSCALLS" XDG_CACHE_HOME=/tmp/nix-cache \
+    && profiles=$(nix eval --raw --no-update-lock-file /opt/workspace-flake#projectProfiles) \
+    && for profile in $profiles; do \
+         nix print-dev-env "/opt/workspace-flake#$profile" >/dev/null || exit 1; \
+       done
 USER 0:0
 
 COPY sshd_config /etc/ssh/sshd_config

@@ -652,6 +652,21 @@ are not committed to Git.
 
 ## Independent frontend workspace
 
+To build the frontend-only image locally for the cluster, run this from the
+homelab checkout:
+
+```sh
+docker build --platform linux/amd64 --build-arg NIX_BUILD_FILTER_SYSCALLS=false \
+  --build-arg WORKSPACE_CONFIG=frontend-workspace.nix \
+  -t homelab-nix-workspace:frontend infrastructure/nix-workspaces/image
+```
+
+`image/frontend-workspace.nix` imports the shared Home Manager shell and
+editor settings from the pinned dotfiles revision. The image includes the
+frontend and frontend-pnpm11 profiles and omits the backend profile. To deploy
+it, pin its published digest for `workspace`, `application`, and
+`worktree-runner` in the frontend overlay.
+
 Use `ssh frontend` and open `http://app.localhost:8200`. The main DMS starts
 once `~/projects/frontend-monorepo` dependencies are installed and
 `~/.frontend-ready` exists. The environment Secret is copied into DMS with
