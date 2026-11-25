@@ -83,6 +83,12 @@ data:
             description: Hike planning, photo library, and post scheduling
             namespace: loky-planner
             podSelector: ""
+        - workspace-admin:
+            icon: mdi-source-branch
+            href: https://workspace-dashboard.workspace-dashboard.homelab.internal/
+            description: Manage worktrees and monitor workspace connections
+            namespace: workspace-dashboard
+            podSelector: app=workspace-dashboard
         - DMS Workspace:
             icon: mdi-code-braces
             href: http://app.frontend-dev.nix-workspaces.homelab.internal
