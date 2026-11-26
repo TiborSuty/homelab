@@ -1,7 +1,10 @@
 { dotfiles }:
 {
   homeModule = {
-    imports = [ (dotfiles + "/nix/home/common.nix") ];
+    imports = [
+      (dotfiles + "/nix/home/common.nix")
+      (dotfiles + "/nix/home/workspace-vaultwarden.nix")
+    ];
     home.username = "dev";
     home.homeDirectory = "/workspace/home";
     home.stateVersion = "26.05";
