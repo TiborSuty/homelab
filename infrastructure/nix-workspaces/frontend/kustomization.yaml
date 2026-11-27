@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: registry.homelab.internal/dev/nix-workspace
-  digest: sha256:108d5d14b42ba33a150e811ed50fc8c0a05232899f0b617803d4bcb2c5a4f7ab
+  digest: sha256:fd18be8bbbd7cc0bf1eac2933177d2220348e76cf9340bd1ca128cec38cb7e7f
 resources:
 - ../base
 - ../worktrees
