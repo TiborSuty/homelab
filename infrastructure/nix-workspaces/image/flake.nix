@@ -21,8 +21,9 @@
       workspace = import ./workspace.nix { inherit dotfiles; };
       pkgsFor = system: import nixpkgs {
         inherit system;
-        # HashiCorp's official binary is BSL-licensed. Permit only this package.
-        config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "vault-bin";
+        config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+          "claude-code" "vault-bin"
+        ];
       };
       homeFor = pkgs: home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
@@ -38,7 +39,7 @@
         ];
       };
       toolsFor = pkgs: with pkgs; [
-        bashInteractive coreutils curl findutils gnugrep gnused gnutar
+        bashInteractive claude-code coreutils curl findutils gnugrep gnused gnutar
         gzip less openssh procps rsync unzip which util-linux
       ] ++ workspace.extraTools pkgs ++ (homeFor pkgs).config.home.packages;
       frontendFor = pkgs: import ./frontend.nix { inherit pkgs; };
